@@ -239,6 +239,25 @@ body {
 @keyframes pop { from { opacity:0; transform:scale(0.95) translateY(8px); } to { opacity:1; transform:scale(1) translateY(0); } }
 .card-stage { animation: pop 0.3s ease both; }
 
+/* BACKUP BAR */
+.backup-bar {
+  background: var(--card); border-radius: 16px; border: 1px solid var(--border);
+  padding: 14px 16px; margin-bottom: 16px; box-shadow: var(--shadow);
+}
+.backup-bar-title { font-size: 13px; font-weight: 800; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+.backup-btns { display: flex; gap: 8px; }
+.backup-btn {
+  flex: 1; padding: 11px 8px; border-radius: 12px; font-family: var(--font);
+  font-size: 13px; font-weight: 700; cursor: pointer; border: none;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  transition: opacity 0.15s;
+}
+.backup-btn:active { opacity: 0.7; }
+.backup-export { background: var(--teal-l); color: var(--teal-d); }
+.backup-import { background: var(--blue-l); color: var(--blue-d); }
+.backup-info { font-size: 11px; color: var(--muted); margin-top: 8px; line-height: 1.5; }
+#importFile { display: none; }
+
 /* TOAST */
 .toast {
   position: fixed; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); left: 50%;
@@ -281,6 +300,15 @@ body {
 
 <!-- MANAGE PAGE -->
 <div class="page" id="page-manage">
+  <div class="backup-bar">
+    <div class="backup-bar-title">☁️ Sao lưu dữ liệu</div>
+    <div class="backup-btns">
+      <button class="backup-btn backup-export" onclick="exportBackup()">⬇️ Xuất file backup</button>
+      <button class="backup-btn backup-import" onclick="document.getElementById('importFile').click()">⬆️ Nhập file backup</button>
+    </div>
+    <div class="backup-info" id="backupInfo">Chưa có thông tin backup</div>
+    <input type="file" id="importFile" accept=".json" onchange="importBackup(event)">
+  </div>
   <div class="sec-title">Bộ thẻ của bạn</div>
   <div class="deck-list" id="deckListManage"></div>
   <button class="add-deck-btn" onclick="openAddDeck()">+ Tạo bộ thẻ mới</button>
@@ -593,7 +621,7 @@ function showPage(p) {
   if (p==="manage") tabs[1].classList.add("active");
   currentPage = p;
   if (p==="home")   renderHome();
-  if (p==="manage") renderManage();
+  if (p==="manage") { renderManage(); updateBackupInfo(); }
 }
 function goHome() { showPage("home"); }
 
@@ -885,6 +913,65 @@ document.addEventListener("keydown", e => {
   if (e.code==="ArrowRight" && flipped) markKnow();
   if (e.code==="ArrowLeft"  && flipped) markAgain();
 });
+
+// BACKUP & RESTORE
+async function exportBackup() {
+  const d = await loadData();
+  const backup = {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    data: d
+  };
+  const json = JSON.stringify(backup, null, 2);
+  const blob = new Blob([json], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  const date = new Date().toISOString().slice(0,10);
+  a.href = url;
+  a.download = `flashcard-backup-${date}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  // Save last backup time
+  localStorage.setItem("lastBackup", new Date().toISOString());
+  updateBackupInfo();
+  showToast("✓ Đã xuất file backup!");
+}
+
+function importBackup(e) {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async ev => {
+    try {
+      const backup = JSON.parse(ev.target.result);
+      // Support both raw data and wrapped backup format
+      const d = backup.data || backup;
+      if (!d.decks || !d.words) throw new Error("File không hợp lệ");
+      const totalWords = Object.values(d.words).reduce((s, arr) => s + arr.length, 0);
+      const msg = `Tìm thấy ${d.decks.length} bộ thẻ và ${totalWords} từ vựng.\n\nDữ liệu hiện tại sẽ bị GHI ĐÈ. Bạn có chắc không?`;
+      if (!confirm(msg)) return;
+      await saveData(d);
+      renderManage();
+      showToast("✓ Nhập backup thành công!");
+    } catch(err) {
+      alert("File backup không hợp lệ hoặc bị lỗi!\n" + err.message);
+    }
+    document.getElementById("importFile").value = "";
+  };
+  reader.readAsText(file);
+}
+
+function updateBackupInfo() {
+  const el = document.getElementById("backupInfo");
+  if (!el) return;
+  const last = localStorage.getItem("lastBackup");
+  if (last) {
+    const d = new Date(last);
+    const str = d.toLocaleDateString("vi-VN") + " lúc " + d.toLocaleTimeString("vi-VN", {hour:"2-digit",minute:"2-digit"});
+    el.textContent = "⚠️ Nên backup thường xuyên để tránh mất dữ liệu. Lần cuối: " + str;
+  } else {
+    el.textContent = "⚠️ Chưa backup lần nào — nhấn Xuất file backup để lưu an toàn!";
+  }
+}
 
 // INIT
 (async () => { await seedDefault(); renderHome(); })();
