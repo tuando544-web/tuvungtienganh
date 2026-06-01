@@ -3,8 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="FlashCard">
+<meta name="theme-color" content="#1D9E75">
 <title>FlashCard – Học Từ Vựng</title>
+
+<!-- PWA Icon inline SVG as data URI -->
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%231D9E75'/%3E%3Ctext y='.9em' font-size='72' x='12'%3E📚%3C/text%3E%3C/svg%3E">
+
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+
 <style>
 :root {
   --bg: #F2F0EC; --card: #FFFFFF; --text: #1C1C1E; --muted: #6B6B6B;
@@ -16,24 +26,27 @@
   --coral: #D85A30; --coral-l: #FAECE7; --coral-d: #993C1D;
   --pink: #D4537E; --pink-l: #FBEAF0; --pink-d: #72243E;
   --green: #639922; --green-l: #EAF3DE; --green-d: #3B6D11;
-  --r: 16px; --font: 'Nunito', -apple-system, BlinkMacSystemFont, sans-serif;
+  --r: 16px;
+  --font: 'Nunito', -apple-system, BlinkMacSystemFont, sans-serif;
   --shadow: 0 2px 16px rgba(0,0,0,0.08);
 }
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; }
+body {
+  font-family: var(--font); background: var(--bg); color: var(--text);
+  min-height: 100vh; min-height: -webkit-fill-available;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
 
+/* NAV */
 .nav {
   background: var(--card); border-bottom: 1px solid var(--border);
-  padding: 12px 16px; display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px;
+  padding-top: calc(12px + env(safe-area-inset-top, 0px));
+  display: flex; align-items: center; justify-content: space-between;
   position: sticky; top: 0; z-index: 100;
 }
 .nav-logo { font-size: 17px; font-weight: 800; }
 .nav-logo span { color: var(--teal); }
-.nav-right { display: flex; align-items: center; gap: 8px; }
-.sync-status { font-size: 11px; padding: 4px 10px; border-radius: 20px; font-weight: 700; }
-.sync-ok    { background: var(--teal-l); color: var(--teal-d); }
-.sync-err   { background: var(--coral-l); color: var(--coral-d); }
-.sync-load  { background: var(--amber-l); color: var(--amber-d); }
 .nav-tabs { display: flex; gap: 4px; }
 .nav-tab {
   font-family: var(--font); font-size: 13px; font-weight: 700;
@@ -42,10 +55,28 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
 }
 .nav-tab.active { background: var(--teal); border-color: var(--teal); color: #fff; }
 
+/* PAGE */
 .page { display: none; padding: 16px; max-width: 640px; margin: 0 auto; }
 .page.active { display: block; }
 .sec-title { font-size: 13px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 10px; }
 
+/* INSTALL BANNER */
+.install-banner {
+  background: linear-gradient(135deg, #1D9E75, #378ADD);
+  border-radius: 16px; padding: 14px 16px; margin-bottom: 16px;
+  display: flex; align-items: center; gap: 12px; color: #fff;
+}
+.install-banner-icon { font-size: 28px; flex-shrink: 0; }
+.install-banner-text { flex: 1; }
+.install-banner-text strong { font-size: 14px; font-weight: 800; display: block; }
+.install-banner-text small { font-size: 12px; opacity: 0.85; line-height: 1.4; }
+.install-close {
+  background: rgba(255,255,255,0.2); border: none; color: #fff;
+  width: 28px; height: 28px; border-radius: 50%; cursor: pointer;
+  font-size: 14px; flex-shrink: 0; font-family: var(--font);
+}
+
+/* DECK LIST */
 .deck-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
 .deck-card {
   background: var(--card); border-radius: var(--r); border: 1px solid var(--border);
@@ -54,45 +85,48 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
 }
 .deck-card:active { transform: scale(0.98); }
 .deck-icon {
-  width: 44px; height: 44px; border-radius: 12px;
+  width: 48px; height: 48px; border-radius: 14px;
   display: flex; align-items: center; justify-content: center;
-  font-size: 22px; flex-shrink: 0;
+  font-size: 24px; flex-shrink: 0;
 }
 .deck-info { flex: 1; min-width: 0; }
 .deck-name { font-size: 15px; font-weight: 700; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .deck-meta { font-size: 12px; color: var(--muted); }
-.deck-arrow { color: var(--muted); font-size: 18px; }
+.deck-arrow { color: var(--muted); font-size: 20px; }
 .deck-actions { display: flex; gap: 6px; }
 .icon-btn {
-  width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--border);
+  width: 34px; height: 34px; border-radius: 9px; border: 1px solid var(--border);
   background: var(--bg); cursor: pointer; font-size: 15px;
   display: flex; align-items: center; justify-content: center; font-family: var(--font);
 }
+
+/* ADD DECK BTN */
 .add-deck-btn {
-  width: 100%; padding: 13px; border-radius: var(--r);
+  width: 100%; padding: 14px; border-radius: var(--r);
   border: 2px dashed var(--border); background: transparent;
   font-family: var(--font); font-size: 14px; font-weight: 700;
   color: var(--muted); cursor: pointer; transition: all 0.15s;
 }
 .add-deck-btn:hover { border-color: var(--teal); color: var(--teal); }
 
+/* MODAL */
 .overlay {
   display: none; position: fixed; inset: 0;
-  background: rgba(0,0,0,0.4); z-index: 200;
+  background: rgba(0,0,0,0.45); z-index: 200;
   align-items: flex-end; justify-content: center;
 }
 .overlay.open { display: flex; }
 .modal {
   background: var(--card); border-radius: 24px 24px 0 0;
   padding: 20px 20px calc(20px + env(safe-area-inset-bottom, 0px));
-  width: 100%; max-width: 640px; max-height: 90vh; overflow-y: auto;
+  width: 100%; max-width: 640px; max-height: 92vh; overflow-y: auto;
 }
 .modal-handle { width: 36px; height: 4px; background: var(--border); border-radius: 4px; margin: 0 auto 16px; }
 .modal-title { font-size: 17px; font-weight: 800; margin-bottom: 16px; }
 .form-group { margin-bottom: 14px; }
 .form-label { font-size: 13px; font-weight: 700; color: var(--muted); margin-bottom: 6px; display: block; }
 .form-input {
-  width: 100%; padding: 11px 14px; border-radius: 12px;
+  width: 100%; padding: 12px 14px; border-radius: 12px;
   border: 1.5px solid var(--border); background: var(--bg);
   font-family: var(--font); font-size: 15px; color: var(--text);
   outline: none; transition: border-color 0.15s;
@@ -100,13 +134,13 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
 .form-input:focus { border-color: var(--teal); }
 .color-row { display: flex; gap: 8px; flex-wrap: wrap; }
 .color-dot {
-  width: 32px; height: 32px; border-radius: 50%; cursor: pointer;
+  width: 34px; height: 34px; border-radius: 50%; cursor: pointer;
   border: 3px solid transparent; transition: transform 0.15s;
 }
 .color-dot.selected { border-color: var(--text); transform: scale(1.15); }
-.modal-btns { display: flex; gap: 10px; margin-top: 6px; }
+.modal-btns { display: flex; gap: 10px; margin-top: 8px; }
 .btn {
-  flex: 1; padding: 13px; border-radius: 14px; font-family: var(--font);
+  flex: 1; padding: 14px; border-radius: 14px; font-family: var(--font);
   font-size: 15px; font-weight: 700; cursor: pointer; border: none;
   transition: opacity 0.15s;
 }
@@ -115,63 +149,65 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
 .btn-secondary { background: var(--bg); color: var(--muted); border: 1.5px solid var(--border); }
 .btn-danger { background: var(--coral-l); color: var(--coral-d); }
 
-/* Image upload */
+/* IMAGE UPLOAD */
 .img-upload-area {
   border: 2px dashed var(--border); border-radius: 12px; padding: 16px;
-  text-align: center; cursor: pointer; transition: all 0.15s; position: relative;
+  text-align: center; cursor: pointer; transition: all 0.15s; position: relative; overflow: hidden;
 }
-.img-upload-area:hover { border-color: var(--teal); }
+.img-upload-area:hover, .img-upload-area:active { border-color: var(--teal); background: var(--teal-l); }
 .img-preview {
-  width: 100%; max-height: 160px; object-fit: cover;
-  border-radius: 10px; display: none;
+  width: 100%; max-height: 180px; object-fit: cover;
+  border-radius: 8px; display: none;
 }
 .img-upload-hint { font-size: 13px; color: var(--muted); font-weight: 600; }
-.img-upload-hint span { font-size: 24px; display: block; margin-bottom: 4px; }
+.img-upload-hint span { font-size: 28px; display: block; margin-bottom: 6px; }
 .img-clear-btn {
-  position: absolute; top: 8px; right: 8px; width: 26px; height: 26px;
-  background: rgba(0,0,0,0.5); color: #fff; border: none; border-radius: 50%;
+  position: absolute; top: 8px; right: 8px; width: 28px; height: 28px;
+  background: rgba(0,0,0,0.55); color: #fff; border: none; border-radius: 50%;
   cursor: pointer; font-size: 14px; display: none; align-items: center; justify-content: center;
+  z-index: 2;
 }
+#imgFile { display: none; }
 
-/* Word list */
+/* WORD LIST */
 .word-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
 .word-item {
   background: var(--card); border-radius: 12px; border: 1px solid var(--border);
   padding: 10px 14px; display: flex; align-items: center; gap: 10px;
 }
 .word-item-thumb {
-  width: 44px; height: 44px; border-radius: 8px; object-fit: cover;
-  flex-shrink: 0; background: var(--bg); display: flex; align-items: center;
-  justify-content: center; font-size: 20px; overflow: hidden;
+  width: 46px; height: 46px; border-radius: 10px; flex-shrink: 0;
+  background: var(--bg); display: flex; align-items: center;
+  justify-content: center; font-size: 22px; overflow: hidden;
 }
 .word-item-thumb img { width: 100%; height: 100%; object-fit: cover; }
 .word-item-info { flex: 1; min-width: 0; }
 .word-item-en { font-size: 14px; font-weight: 700; }
 .word-item-vn { font-size: 12px; color: var(--muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .empty-state { text-align: center; padding: 32px 16px; color: var(--muted); font-size: 14px; }
-.empty-icon { font-size: 40px; margin-bottom: 10px; }
+.empty-icon { font-size: 44px; margin-bottom: 10px; }
 
-/* Study */
+/* STUDY PAGE */
 .study-header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
 .back-btn {
-  width: 36px; height: 36px; border-radius: 10px; border: 1.5px solid var(--border);
+  width: 38px; height: 38px; border-radius: 11px; border: 1.5px solid var(--border);
   background: var(--card); cursor: pointer; font-size: 18px;
   display: flex; align-items: center; justify-content: center;
 }
 .study-title { font-size: 16px; font-weight: 800; flex: 1; }
 .prog-wrap { margin-bottom: 14px; }
-.prog-meta { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-bottom: 5px; }
-.prog-track { height: 5px; background: rgba(0,0,0,0.07); border-radius: 10px; }
+.prog-meta { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+.prog-track { height: 6px; background: rgba(0,0,0,0.07); border-radius: 10px; }
 .prog-fill { height: 100%; border-radius: 10px; transition: width 0.4s ease; }
 .score-row { display: flex; gap: 8px; margin-bottom: 14px; }
-.score-pill { font-size: 12px; font-weight: 700; padding: 5px 12px; border-radius: 20px; }
+.score-pill { font-size: 12px; font-weight: 700; padding: 6px 12px; border-radius: 20px; }
 
-/* Flashcard */
-.card-stage { perspective: 1000px; height: 260px; cursor: pointer; margin-bottom: 12px; user-select: none; }
+/* FLASHCARD */
+.card-stage { perspective: 1000px; height: 270px; cursor: pointer; margin-bottom: 12px; user-select: none; }
 .card-inner { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform 0.5s cubic-bezier(0.4,0,0.2,1); }
 .card-inner.flipped { transform: rotateY(180deg); }
 .card-face {
-  position: absolute; inset: 0; border-radius: 20px;
+  position: absolute; inset: 0; border-radius: 22px;
   backface-visibility: hidden; -webkit-backface-visibility: hidden;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   padding: 20px; box-shadow: var(--shadow); overflow: hidden;
@@ -180,64 +216,63 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
 .card-back { transform: rotateY(180deg); }
 .card-badge { position: absolute; top: 14px; left: 14px; font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; padding: 3px 10px; border-radius: 20px; }
 .card-num { position: absolute; top: 14px; right: 14px; font-size: 12px; color: var(--muted); font-weight: 600; }
-.card-word { font-size: 28px; font-weight: 800; text-align: center; margin-bottom: 6px; line-height: 1.2; }
-.card-ph { font-size: 13px; color: var(--muted); }
+.card-img { width: 80px; height: 80px; border-radius: 14px; object-fit: cover; margin-bottom: 10px; box-shadow: 0 3px 10px rgba(0,0,0,0.13); }
+.card-word { font-size: 30px; font-weight: 800; text-align: center; margin-bottom: 6px; line-height: 1.2; }
+.card-ph { font-size: 13px; color: var(--muted); text-align: center; }
 .card-hint { position: absolute; bottom: 12px; font-size: 11px; color: var(--muted); }
-.card-vn { font-size: 22px; font-weight: 800; text-align: center; margin-bottom: 8px; line-height: 1.3; }
+.card-vn { font-size: 23px; font-weight: 800; text-align: center; margin-bottom: 8px; line-height: 1.3; }
 .card-ex { font-size: 13px; text-align: center; line-height: 1.55; font-style: italic; opacity: 0.7; }
-.card-img {
-  width: 80px; height: 80px; border-radius: 12px; object-fit: cover;
-  margin-bottom: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.12);
-}
 
 .flip-wrap { display: flex; justify-content: center; margin-bottom: 10px; }
-.flip-btn { font-family: var(--font); font-size: 14px; font-weight: 700; background: var(--card); border: 1.5px solid var(--border); color: var(--muted); padding: 10px 28px; border-radius: 12px; cursor: pointer; }
+.flip-btn { font-family: var(--font); font-size: 14px; font-weight: 700; background: var(--card); border: 1.5px solid var(--border); color: var(--muted); padding: 11px 32px; border-radius: 14px; cursor: pointer; }
 .action-row { display: flex; gap: 10px; margin-bottom: 16px; opacity: 0; pointer-events: none; transform: translateY(6px); transition: all 0.2s; }
 .action-row.vis { opacity: 1; pointer-events: all; transform: translateY(0); }
-.act-btn { flex: 1; padding: 13px; border-radius: 14px; font-family: var(--font); font-size: 15px; font-weight: 700; border: none; cursor: pointer; }
+.act-btn { flex: 1; padding: 14px; border-radius: 14px; font-family: var(--font); font-size: 15px; font-weight: 700; border: none; cursor: pointer; }
 .btn-again { background: var(--coral-l); color: var(--coral-d); }
 .btn-know { background: var(--teal-l); color: var(--teal-d); }
 
-.done-box { text-align: center; padding: 28px 16px; background: var(--card); border-radius: 20px; box-shadow: var(--shadow); }
-.done-box h2 { font-size: 20px; font-weight: 800; margin-bottom: 8px; }
-.done-box p { color: var(--muted); margin-bottom: 18px; font-size: 14px; line-height: 1.6; }
+.done-box { text-align: center; padding: 30px 16px; background: var(--card); border-radius: 22px; box-shadow: var(--shadow); }
+.done-box h2 { font-size: 22px; font-weight: 800; margin-bottom: 8px; }
+.done-box p { color: var(--muted); margin-bottom: 20px; font-size: 14px; line-height: 1.6; }
 .done-btns { display: flex; flex-direction: column; gap: 8px; }
 
 @keyframes pop { from { opacity:0; transform:scale(0.95) translateY(8px); } to { opacity:1; transform:scale(1) translateY(0); } }
 .card-stage { animation: pop 0.3s ease both; }
 
-.cloud-banner {
-  background: linear-gradient(135deg, var(--teal-l), var(--blue-l));
-  border: 1px solid rgba(29,158,117,0.2); border-radius: 14px;
-  padding: 12px 16px; margin-bottom: 16px; display: flex; align-items: center; gap: 10px;
+/* TOAST */
+.toast {
+  position: fixed; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: #1C1C1E; color: #fff; padding: 10px 20px; border-radius: 24px;
+  font-size: 13px; font-weight: 700; opacity: 0; transition: all 0.3s; z-index: 999;
+  white-space: nowrap; pointer-events: none;
 }
-.cloud-banner-icon { font-size: 22px; }
-.cloud-banner-text { font-size: 13px; font-weight: 600; color: var(--teal-d); flex: 1; }
-.cloud-banner-text small { display: block; color: var(--muted); font-weight: 500; font-size: 11px; margin-top: 2px; }
-
-#imgFile { display: none; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 </style>
 </head>
 <body>
 
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
 <div class="nav">
-  <div class="nav-logo">Flash<span>Card</span> ⚙️</div>
-  <div class="nav-right">
-    <div class="sync-status sync-load" id="syncStatus">⏳ Đang tải...</div>
-    <div class="nav-tabs">
-      <button class="nav-tab active" onclick="showPage('home')">Bộ thẻ</button>
-      <button class="nav-tab" onclick="showPage('manage')" id="manageTab">Quản lý</button>
-    </div>
+  <div class="nav-logo">Flash<span>Card</span> 📚</div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showPage('home')">Bộ thẻ</button>
+    <button class="nav-tab" onclick="showPage('manage')">Quản lý</button>
   </div>
 </div>
 
 <!-- HOME PAGE -->
 <div class="page active" id="page-home">
-  <div class="cloud-banner">
-    <div class="cloud-banner-icon">☁️</div>
-    <div class="cloud-banner-text">
-      Dữ liệu đồng bộ đám mây
-      <small>Thêm từ ở máy tính → mở điện thoại lên sẽ thấy ngay!</small>
+  <div id="installBanner" style="display:none">
+    <div class="install-banner">
+      <div class="install-banner-icon">📲</div>
+      <div class="install-banner-text">
+        <strong>Cài app lên màn hình chính!</strong>
+        <small id="installHint"></small>
+      </div>
+      <button class="install-close" onclick="dismissInstall()">✕</button>
     </div>
   </div>
   <div class="sec-title">Chọn bộ thẻ để học</div>
@@ -345,7 +380,7 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
     <div class="modal-handle"></div>
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
       <div class="modal-title" id="detailTitle" style="margin:0"></div>
-      <button class="icon-btn" onclick="openAddWord()">＋</button>
+      <button class="icon-btn" onclick="openAddWord()" style="font-size:18px;font-weight:800">＋</button>
     </div>
     <div id="detailWordList"></div>
     <div class="modal-btns" style="margin-top:10px">
@@ -379,65 +414,122 @@ const COLORS = [
   { name:"green",  bg:"#639922", light:"#EAF3DE", dark:"#3B6D11" },
 ];
 
-// ---- CLOUD STORAGE (window.storage) ----
-const STORAGE_KEY = "fcData_v2";
+// ---- DATA (IndexedDB for large image data, localStorage fallback) ----
+const DB_NAME = "flashcardDB", DB_VER = 1, STORE = "appData";
+
+function openDB() {
+  return new Promise((res, rej) => {
+    const req = indexedDB.open(DB_NAME, DB_VER);
+    req.onupgradeneeded = e => e.target.result.createObjectStore(STORE);
+    req.onsuccess = e => res(e.target.result);
+    req.onerror = () => rej(req.error);
+  });
+}
+async function dbGet(key) {
+  try {
+    const db = await openDB();
+    return new Promise((res, rej) => {
+      const tx = db.transaction(STORE, "readonly");
+      const req = tx.objectStore(STORE).get(key);
+      req.onsuccess = () => res(req.result);
+      req.onerror = () => rej(req.error);
+    });
+  } catch(e) { return null; }
+}
+async function dbSet(key, val) {
+  try {
+    const db = await openDB();
+    return new Promise((res, rej) => {
+      const tx = db.transaction(STORE, "readwrite");
+      tx.objectStore(STORE).put(val, key);
+      tx.oncomplete = () => res(true);
+      tx.onerror = () => rej(tx.error);
+    });
+  } catch(e) { return false; }
+}
 
 async function loadData() {
   try {
-    const res = await window.storage.get(STORAGE_KEY, true); // shared=true → đồng bộ mọi thiết bị
-    if (res && res.value) {
-      return JSON.parse(res.value);
-    }
+    const d = await dbGet("fcData");
+    if (d) return d;
   } catch(e) {}
-  // fallback: localStorage
+  // fallback localStorage
   try {
-    const local = localStorage.getItem("fcData");
-    if (local) return JSON.parse(local);
+    const s = localStorage.getItem("fcData");
+    if (s) return JSON.parse(s);
   } catch(e) {}
   return { decks: [], words: {} };
 }
-
 async function saveData(d) {
-  const json = JSON.stringify(d);
-  setSyncStatus("load");
-  try {
-    await window.storage.set(STORAGE_KEY, json, true); // shared=true
-    localStorage.setItem("fcData", json); // backup local
-    setSyncStatus("ok");
-  } catch(e) {
-    // fallback localStorage
-    localStorage.setItem("fcData", json);
-    setSyncStatus("err");
-  }
+  await dbSet("fcData", d);
+  try { localStorage.setItem("fcData", JSON.stringify(d)); } catch(e) {}
+  showToast("✓ Đã lưu");
 }
 
-function setSyncStatus(s) {
-  const el = document.getElementById("syncStatus");
-  if (s === "ok")   { el.className = "sync-status sync-ok";   el.textContent = "✓ Đã đồng bộ"; }
-  if (s === "err")  { el.className = "sync-status sync-err";  el.textContent = "⚠ Lưu cục bộ"; }
-  if (s === "load") { el.className = "sync-status sync-load"; el.textContent = "⏳ Đang lưu..."; }
+// TOAST
+let toastTimer;
+function showToast(msg) {
+  const el = document.getElementById("toast");
+  el.textContent = msg; el.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove("show"), 1800);
 }
 
-// Seed default deck
+// SEED
 async function seedDefault() {
   const d = await loadData();
   if (d.decks.length === 0) {
     const id = "deck_default";
     d.decks.push({ id, name:"Hiệu Chuẩn & Quan Trắc", emoji:"⚙️", color:"teal" });
     d.words[id] = [
-      { id:"w1", en:"Calibration",   ph:"/ˌkælɪˈbreɪʃən/",  vn:"Hiệu chuẩn",           ex:"Annual calibration is required." },
-      { id:"w2", en:"Accuracy",      ph:"/ˈækjərəsi/",       vn:"Độ chính xác",          ex:"This device has ±0.1% accuracy." },
-      { id:"w3", en:"Uncertainty",   ph:"/ʌnˈsɜːtənti/",    vn:"Độ không đảm bảo đo",  ex:"Report the measurement uncertainty." },
-      { id:"w4", en:"Traceability",  ph:"/ˌtreɪsəˈbɪlɪti/", vn:"Liên kết chuẩn",       ex:"Traceability to national standards is required." },
-      { id:"w5", en:"Tolerance",     ph:"/ˈtɒlərəns/",       vn:"Dung sai",              ex:"The reading is within tolerance." },
-      { id:"w6", en:"Drift",         ph:"/drɪft/",           vn:"Độ trôi",               ex:"Sensor drift occurs over time." },
-      { id:"w7", en:"Sensor",        ph:"/ˈsɛnsər/",         vn:"Cảm biến",              ex:"Install the temperature sensor first." },
-      { id:"w8", en:"Humidity",      ph:"/hjuːˈmɪdɪti/",    vn:"Độ ẩm",                 ex:"Humidity is measured in percent." },
+      { id:"w1", en:"Calibration",  ph:"/ˌkælɪˈbreɪʃən/",  vn:"Hiệu chuẩn",          ex:"Annual calibration is required.", img:null },
+      { id:"w2", en:"Accuracy",     ph:"/ˈækjərəsi/",       vn:"Độ chính xác",         ex:"This device has ±0.1% accuracy.", img:null },
+      { id:"w3", en:"Uncertainty",  ph:"/ʌnˈsɜːtənti/",    vn:"Độ không đảm bảo đo", ex:"Report the measurement uncertainty.", img:null },
+      { id:"w4", en:"Traceability", ph:"/ˌtreɪsəˈbɪlɪti/", vn:"Liên kết chuẩn",      ex:"Traceability to national standards.", img:null },
+      { id:"w5", en:"Tolerance",    ph:"/ˈtɒlərəns/",       vn:"Dung sai",             ex:"The reading is within tolerance.", img:null },
+      { id:"w6", en:"Drift",        ph:"/drɪft/",           vn:"Độ trôi",              ex:"Sensor drift occurs over time.", img:null },
+      { id:"w7", en:"Sensor",       ph:"/ˈsɛnsər/",         vn:"Cảm biến",             ex:"Install the temperature sensor first.", img:null },
+      { id:"w8", en:"Humidity",     ph:"/hjuːˈmɪdɪti/",    vn:"Độ ẩm",                ex:"Humidity is measured in percent.", img:null },
     ];
     await saveData(d);
-  } else {
-    setSyncStatus("ok");
   }
+}
+
+// PWA INSTALL BANNER
+let deferredPrompt = null;
+window.addEventListener("beforeinstallprompt", e => {
+  e.preventDefault(); deferredPrompt = e; showInstallBanner();
+});
+function showInstallBanner() {
+  if (localStorage.getItem("installDismissed")) return;
+  const banner = document.getElementById("installBanner");
+  const hint = document.getElementById("installHint");
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  if (isIOS) {
+    hint.textContent = 'Nhấn nút Chia sẻ ⬆ → "Thêm vào Màn hình chính"';
+    banner.style.display = "block";
+  } else if (deferredPrompt) {
+    hint.textContent = "Cài app để dùng offline, không cần mở trình duyệt";
+    banner.style.display = "block";
+    banner.querySelector(".install-banner").style.cursor = "pointer";
+    banner.querySelector(".install-banner").onclick = async (e) => {
+      if (e.target.classList.contains("install-close")) return;
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === "accepted") dismissInstall();
+    };
+  } else {
+    // iOS/Safari fallback
+    const isIOS2 = /safari/i.test(navigator.userAgent) && !/chrome/i.test(navigator.userAgent);
+    if (isIOS2) {
+      hint.textContent = 'Nhấn nút Chia sẻ ⬆ → "Thêm vào Màn hình chính"';
+      banner.style.display = "block";
+    }
+  }
+}
+function dismissInstall() {
+  localStorage.setItem("installDismissed","1");
+  document.getElementById("installBanner").style.display = "none";
 }
 
 // STATE
@@ -446,39 +538,46 @@ let editingDeckId = null, selectedColor = "teal";
 let activeDeckId = null, editingWordId = null;
 let studyQueue = [], studyIdx = 0, flipped = false;
 let knowSet = new Set(), againSet = new Set();
-let currentImageData = null; // base64 for current word image
+let currentImageData = null;
 
-// IMAGE HANDLING
+// IMAGE
 function handleImageUpload(e) {
-  const file = e.target.files[0];
-  if (!file) return;
+  const file = e.target.files[0]; if (!file) return;
+  // Resize image before storing
   const reader = new FileReader();
   reader.onload = ev => {
-    currentImageData = ev.target.result;
-    const preview = document.getElementById("imgPreview");
-    const hint = document.getElementById("imgHint");
-    const clearBtn = document.getElementById("imgClearBtn");
-    preview.src = currentImageData;
-    preview.style.display = "block";
-    hint.style.display = "none";
-    clearBtn.style.display = "flex";
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      const MAX = 400;
+      let w = img.width, h = img.height;
+      if (w > MAX || h > MAX) {
+        if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+        else { w = Math.round(w * MAX / h); h = MAX; }
+      }
+      canvas.width = w; canvas.height = h;
+      canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+      currentImageData = canvas.toDataURL("image/jpeg", 0.75);
+      document.getElementById("imgPreview").src = currentImageData;
+      document.getElementById("imgPreview").style.display = "block";
+      document.getElementById("imgHint").style.display = "none";
+      document.getElementById("imgClearBtn").style.display = "flex";
+    };
+    img.src = ev.target.result;
   };
   reader.readAsDataURL(file);
 }
 function clearImage() {
   currentImageData = null;
-  const preview = document.getElementById("imgPreview");
-  const hint = document.getElementById("imgHint");
-  const clearBtn = document.getElementById("imgClearBtn");
-  preview.style.display = "none";
-  hint.style.display = "block";
-  clearBtn.style.display = "none";
+  document.getElementById("imgPreview").style.display = "none";
+  document.getElementById("imgHint").style.display = "block";
+  document.getElementById("imgClearBtn").style.display = "none";
   document.getElementById("imgFile").value = "";
 }
 function resetImageUI() {
   currentImageData = null;
-  document.getElementById("imgPreview").style.display = "none";
   document.getElementById("imgPreview").src = "";
+  document.getElementById("imgPreview").style.display = "none";
   document.getElementById("imgHint").style.display = "block";
   document.getElementById("imgClearBtn").style.display = "none";
   document.getElementById("imgFile").value = "";
@@ -518,6 +617,8 @@ async function renderHome() {
       <div class="deck-arrow">›</div>
     </div>`;
   }).join("");
+  // Show install banner if not dismissed
+  if (!localStorage.getItem("installDismissed")) showInstallBanner();
 }
 
 // RENDER MANAGE
@@ -547,7 +648,7 @@ async function renderManage() {
 // DECK MODAL
 function buildColorRow(selected) {
   document.getElementById("colorRow").innerHTML = COLORS.map(c =>
-    `<div class="color-dot${c.name===selected?' selected':''}" style="background:${c.bg}" onclick="selectColor('${c.name}')"></div>`
+    `<div class="color-dot${c.name===selected?" selected":""}" style="background:${c.bg}" onclick="selectColor('${c.name}')"></div>`
   ).join("");
 }
 function selectColor(name) { selectedColor = name; buildColorRow(name); }
@@ -560,8 +661,7 @@ function openAddDeck() {
 }
 async function openEditDeck(id) {
   const d = await loadData();
-  const deck = d.decks.find(dk => dk.id === id);
-  if (!deck) return;
+  const deck = d.decks.find(dk => dk.id === id); if (!deck) return;
   editingDeckId = id; selectedColor = deck.color;
   document.getElementById("deckModalTitle").textContent = "Chỉnh sửa bộ thẻ";
   document.getElementById("deckName").value = deck.name;
@@ -588,15 +688,13 @@ async function saveDeck() {
 async function openDeckDetail(id) {
   activeDeckId = id;
   const d = await loadData();
-  const deck = d.decks.find(dk => dk.id === id);
-  if (!deck) return;
+  const deck = d.decks.find(dk => dk.id === id); if (!deck) return;
   document.getElementById("detailTitle").textContent = deck.emoji+" "+deck.name;
   renderDetailWords(id); openModal("detailModal");
 }
 async function renderDetailWords(id) {
   const d = await loadData();
   const words = d.words[id] || [];
-  const c = COLORS.find(c => c.name === (d.decks.find(dk=>dk.id===id)||{}).color) || COLORS[0];
   const el = document.getElementById("detailWordList");
   if (words.length === 0) {
     el.innerHTML = `<div class="empty-state" style="padding:16px"><div class="empty-icon">📝</div><p>Chưa có từ nào.<br>Nhấn + để thêm từ mới!</p></div>`;
@@ -610,7 +708,7 @@ async function renderDetailWords(id) {
       ${thumb}
       <div class="word-item-info">
         <div class="word-item-en">${w.en}</div>
-        <div class="word-item-vn">${w.vn}${w.ph ? ' · '+w.ph : ''}</div>
+        <div class="word-item-vn">${w.vn}${w.ph ? " · "+w.ph : ""}</div>
       </div>
       <div style="display:flex;gap:6px">
         <button class="icon-btn" onclick="openEditWord('${id}','${w.id}')">✏️</button>
@@ -628,29 +726,24 @@ function openAddWord() {
   document.getElementById("wordPh").value = "";
   document.getElementById("wordVn").value = "";
   document.getElementById("wordEx").value = "";
-  resetImageUI();
-  openModal("wordModal");
+  resetImageUI(); openModal("wordModal");
 }
 async function openEditWord(deckId, wordId) {
   const d = await loadData();
-  const w = (d.words[deckId]||[]).find(w => w.id === wordId);
-  if (!w) return;
+  const w = (d.words[deckId]||[]).find(w => w.id === wordId); if (!w) return;
   editingWordId = wordId;
   document.getElementById("wordModalTitle").textContent = "Chỉnh sửa từ";
   document.getElementById("wordEn").value = w.en;
   document.getElementById("wordPh").value = w.ph || "";
   document.getElementById("wordVn").value = w.vn;
   document.getElementById("wordEx").value = w.ex || "";
-  // Load existing image
   if (w.img) {
     currentImageData = w.img;
     document.getElementById("imgPreview").src = w.img;
     document.getElementById("imgPreview").style.display = "block";
     document.getElementById("imgHint").style.display = "none";
     document.getElementById("imgClearBtn").style.display = "flex";
-  } else {
-    resetImageUI();
-  }
+  } else { resetImageUI(); }
   openModal("wordModal");
 }
 async function saveWord() {
@@ -678,7 +771,7 @@ async function deleteWord(deckId, wordId) {
 // DELETE DECK
 function confirmDeleteDeck() {
   document.getElementById("confirmTitle").textContent = "Xoá bộ thẻ?";
-  document.getElementById("confirmMsg").textContent = "Tất cả từ vựng trong bộ thẻ này sẽ bị xoá. Không thể khôi phục!";
+  document.getElementById("confirmMsg").textContent = "Tất cả từ vựng sẽ bị xoá. Không thể khôi phục!";
   document.getElementById("confirmOkBtn").onclick = async () => {
     const d = await loadData();
     d.decks = d.decks.filter(dk => dk.id !== activeDeckId);
@@ -689,7 +782,7 @@ function confirmDeleteDeck() {
 }
 
 // MODAL HELPERS
-function openModal(id) { document.getElementById(id).classList.add("open"); }
+function openModal(id)  { document.getElementById(id).classList.add("open"); }
 function closeModal(id) { document.getElementById(id).classList.remove("open"); }
 document.querySelectorAll(".overlay").forEach(o => {
   o.addEventListener("click", e => { if (e.target === o) o.classList.remove("open"); });
@@ -697,7 +790,6 @@ document.querySelectorAll(".overlay").forEach(o => {
 
 // STUDY
 function shuffle(a) { for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]; } return a; }
-
 async function startStudy(deckId) {
   const d = await loadData();
   const deck = d.decks.find(dk => dk.id === deckId);
@@ -710,10 +802,8 @@ async function startStudy(deckId) {
   const c = COLORS.find(c => c.name === deck.color) || COLORS[0];
   document.getElementById("progFill").style.background = c.bg;
   document.getElementById("studyTitle").textContent = deck.emoji+" "+deck.name;
-  showPage("study");
-  updateStudyUI(); renderStudyCard();
+  showPage("study"); updateStudyUI(); renderStudyCard();
 }
-
 function updateStudyUI() {
   const total = studyQueue.length, done = studyIdx;
   const pct = total ? Math.round((done/total)*100) : 0;
@@ -722,9 +812,8 @@ function updateStudyUI() {
   document.getElementById("progFill").style.width = pct+"%";
   document.getElementById("sKnow").textContent = knowSet.size;
   document.getElementById("sAgain").textContent = againSet.size;
-  document.getElementById("sLeft").textContent = Math.max(0, total-done);
+  document.getElementById("sLeft").textContent = Math.max(0,total-done);
 }
-
 async function renderStudyCard() {
   const area = document.getElementById("studyArea");
   const flipW = document.getElementById("flipWrap");
@@ -732,7 +821,7 @@ async function renderStudyCard() {
   if (studyIdx >= studyQueue.length) {
     flipW.style.display = "none"; actRow.classList.remove("vis");
     area.innerHTML = `<div class="done-box">
-      <div style="font-size:48px;margin-bottom:12px">🎉</div>
+      <div style="font-size:52px;margin-bottom:12px">🎉</div>
       <h2>Hoàn thành!</h2>
       <p>Đã biết: <strong>${knowSet.size}</strong> từ &nbsp;·&nbsp; Cần ôn: <strong>${againSet.size}</strong> từ</p>
       <div class="done-btns">
@@ -750,14 +839,13 @@ async function renderStudyCard() {
   flipped = false;
   flipW.style.display = "flex"; flipW.style.opacity = "1";
   actRow.classList.remove("vis");
-  const imgFront = w.img ? `<img class="card-img" src="${w.img}" alt="${w.en}">` : "";
-  const imgBack  = w.img ? `<img class="card-img" src="${w.img}" alt="${w.en}">` : "";
+  const imgEl = w.img ? `<img class="card-img" src="${w.img}" alt="${w.en}">` : "";
   area.innerHTML = `<div class="card-stage" onclick="flipCard()">
     <div class="card-inner" id="cardInner">
       <div class="card-face card-front">
         <span class="card-badge" style="background:${c.light};color:${c.dark}">${deck.emoji} ${deck.name}</span>
         <span class="card-num">${studyIdx+1}/${studyQueue.length}</span>
-        ${imgFront}
+        ${imgEl}
         <div class="card-word">${w.en}</div>
         <div class="card-ph">${w.ph||""}</div>
         <div class="card-hint">chạm để lật ↕</div>
@@ -765,7 +853,7 @@ async function renderStudyCard() {
       <div class="card-face card-back" style="background:${c.light}">
         <span class="card-badge" style="background:${c.bg};color:#fff">${deck.emoji} ${deck.name}</span>
         <span class="card-num">${studyIdx+1}/${studyQueue.length}</span>
-        ${imgBack}
+        ${imgEl}
         <div class="card-vn" style="color:${c.dark}">${w.vn}</div>
         ${w.ex?`<div class="card-ex" style="color:${c.dark}">"${w.ex}"</div>`:""}
         <div class="card-hint">chạm để lật lại ↕</div>
@@ -773,15 +861,12 @@ async function renderStudyCard() {
     </div>
   </div>`;
 }
-
 function flipCard() {
   if (studyIdx >= studyQueue.length) return;
   flipped = !flipped;
-  const ci = document.getElementById("cardInner");
-  if (!ci) return;
+  const ci = document.getElementById("cardInner"); if (!ci) return;
   ci.classList.toggle("flipped", flipped);
-  const ar = document.getElementById("actionRow");
-  const fw = document.getElementById("flipWrap");
+  const ar = document.getElementById("actionRow"), fw = document.getElementById("flipWrap");
   if (flipped) { ar.classList.add("vis"); fw.style.opacity="0"; }
   else { ar.classList.remove("vis"); fw.style.opacity="1"; }
 }
@@ -794,7 +879,6 @@ async function reviewAgain() {
   studyIdx=0; flipped=false; knowSet.clear(); againSet.clear();
   updateStudyUI(); renderStudyCard();
 }
-
 document.addEventListener("keydown", e => {
   if (currentPage !== "study") return;
   if (e.code==="Space") { e.preventDefault(); flipCard(); }
@@ -803,10 +887,7 @@ document.addEventListener("keydown", e => {
 });
 
 // INIT
-(async () => {
-  await seedDefault();
-  renderHome();
-})();
+(async () => { await seedDefault(); renderHome(); })();
 </script>
 </body>
 </html>
