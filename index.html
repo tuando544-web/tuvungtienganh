@@ -4,12 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>FlashCard – Học Từ Vựng</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg: #F2F0EC;
-  --card: #FFFFFF;
-  --text: #1C1C1E;
-  --muted: #6B6B6B;
+  --bg: #F2F0EC; --card: #FFFFFF; --text: #1C1C1E; --muted: #6B6B6B;
   --border: rgba(0,0,0,0.09);
   --teal: #1D9E75; --teal-l: #E1F5EE; --teal-d: #085041;
   --purple: #7F77DD; --purple-l: #EEEDFE; --purple-d: #3C3489;
@@ -18,36 +16,36 @@
   --coral: #D85A30; --coral-l: #FAECE7; --coral-d: #993C1D;
   --pink: #D4537E; --pink-l: #FBEAF0; --pink-d: #72243E;
   --green: #639922; --green-l: #EAF3DE; --green-d: #3B6D11;
-  --r: 16px; --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+  --r: 16px; --font: 'Nunito', -apple-system, BlinkMacSystemFont, sans-serif;
   --shadow: 0 2px 16px rgba(0,0,0,0.08);
 }
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; }
 
-/* NAV */
 .nav {
   background: var(--card); border-bottom: 1px solid var(--border);
   padding: 12px 16px; display: flex; align-items: center; justify-content: space-between;
   position: sticky; top: 0; z-index: 100;
 }
-.nav-logo { font-size: 17px; font-weight: 700; }
+.nav-logo { font-size: 17px; font-weight: 800; }
 .nav-logo span { color: var(--teal); }
+.nav-right { display: flex; align-items: center; gap: 8px; }
+.sync-status { font-size: 11px; padding: 4px 10px; border-radius: 20px; font-weight: 700; }
+.sync-ok    { background: var(--teal-l); color: var(--teal-d); }
+.sync-err   { background: var(--coral-l); color: var(--coral-d); }
+.sync-load  { background: var(--amber-l); color: var(--amber-d); }
 .nav-tabs { display: flex; gap: 4px; }
 .nav-tab {
-  font-family: var(--font); font-size: 13px; font-weight: 500;
+  font-family: var(--font); font-size: 13px; font-weight: 700;
   padding: 6px 14px; border-radius: 20px; border: 1.5px solid var(--border);
   background: transparent; color: var(--muted); cursor: pointer;
 }
 .nav-tab.active { background: var(--teal); border-color: var(--teal); color: #fff; }
 
-/* PAGE */
 .page { display: none; padding: 16px; max-width: 640px; margin: 0 auto; }
 .page.active { display: block; }
+.sec-title { font-size: 13px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 10px; }
 
-/* SECTION TITLE */
-.sec-title { font-size: 13px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 10px; }
-
-/* CARDS LIST */
 .deck-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
 .deck-card {
   background: var(--card); border-radius: var(--r); border: 1px solid var(--border);
@@ -61,27 +59,23 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
   font-size: 22px; flex-shrink: 0;
 }
 .deck-info { flex: 1; min-width: 0; }
-.deck-name { font-size: 15px; font-weight: 600; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.deck-name { font-size: 15px; font-weight: 700; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .deck-meta { font-size: 12px; color: var(--muted); }
 .deck-arrow { color: var(--muted); font-size: 18px; }
 .deck-actions { display: flex; gap: 6px; }
 .icon-btn {
   width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--border);
   background: var(--bg); cursor: pointer; font-size: 15px;
-  display: flex; align-items: center; justify-content: center;
-  font-family: var(--font);
+  display: flex; align-items: center; justify-content: center; font-family: var(--font);
 }
-
-/* ADD DECK BTN */
 .add-deck-btn {
   width: 100%; padding: 13px; border-radius: var(--r);
   border: 2px dashed var(--border); background: transparent;
-  font-family: var(--font); font-size: 14px; font-weight: 500;
+  font-family: var(--font); font-size: 14px; font-weight: 700;
   color: var(--muted); cursor: pointer; transition: all 0.15s;
 }
 .add-deck-btn:hover { border-color: var(--teal); color: var(--teal); }
 
-/* MODAL */
 .overlay {
   display: none; position: fixed; inset: 0;
   background: rgba(0,0,0,0.4); z-index: 200;
@@ -94,9 +88,9 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
   width: 100%; max-width: 640px; max-height: 90vh; overflow-y: auto;
 }
 .modal-handle { width: 36px; height: 4px; background: var(--border); border-radius: 4px; margin: 0 auto 16px; }
-.modal-title { font-size: 17px; font-weight: 700; margin-bottom: 16px; }
+.modal-title { font-size: 17px; font-weight: 800; margin-bottom: 16px; }
 .form-group { margin-bottom: 14px; }
-.form-label { font-size: 13px; font-weight: 600; color: var(--muted); margin-bottom: 6px; display: block; }
+.form-label { font-size: 13px; font-weight: 700; color: var(--muted); margin-bottom: 6px; display: block; }
 .form-input {
   width: 100%; padding: 11px 14px; border-radius: 12px;
   border: 1.5px solid var(--border); background: var(--bg);
@@ -113,7 +107,7 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
 .modal-btns { display: flex; gap: 10px; margin-top: 6px; }
 .btn {
   flex: 1; padding: 13px; border-radius: 14px; font-family: var(--font);
-  font-size: 15px; font-weight: 600; cursor: pointer; border: none;
+  font-size: 15px; font-weight: 700; cursor: pointer; border: none;
   transition: opacity 0.15s;
 }
 .btn:active { opacity: 0.75; }
@@ -121,89 +115,133 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
 .btn-secondary { background: var(--bg); color: var(--muted); border: 1.5px solid var(--border); }
 .btn-danger { background: var(--coral-l); color: var(--coral-d); }
 
-/* WORD LIST */
+/* Image upload */
+.img-upload-area {
+  border: 2px dashed var(--border); border-radius: 12px; padding: 16px;
+  text-align: center; cursor: pointer; transition: all 0.15s; position: relative;
+}
+.img-upload-area:hover { border-color: var(--teal); }
+.img-preview {
+  width: 100%; max-height: 160px; object-fit: cover;
+  border-radius: 10px; display: none;
+}
+.img-upload-hint { font-size: 13px; color: var(--muted); font-weight: 600; }
+.img-upload-hint span { font-size: 24px; display: block; margin-bottom: 4px; }
+.img-clear-btn {
+  position: absolute; top: 8px; right: 8px; width: 26px; height: 26px;
+  background: rgba(0,0,0,0.5); color: #fff; border: none; border-radius: 50%;
+  cursor: pointer; font-size: 14px; display: none; align-items: center; justify-content: center;
+}
+
+/* Word list */
 .word-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
 .word-item {
   background: var(--card); border-radius: 12px; border: 1px solid var(--border);
-  padding: 12px 14px; display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px; display: flex; align-items: center; gap: 10px;
 }
+.word-item-thumb {
+  width: 44px; height: 44px; border-radius: 8px; object-fit: cover;
+  flex-shrink: 0; background: var(--bg); display: flex; align-items: center;
+  justify-content: center; font-size: 20px; overflow: hidden;
+}
+.word-item-thumb img { width: 100%; height: 100%; object-fit: cover; }
 .word-item-info { flex: 1; min-width: 0; }
-.word-item-en { font-size: 14px; font-weight: 600; }
+.word-item-en { font-size: 14px; font-weight: 700; }
 .word-item-vn { font-size: 12px; color: var(--muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .empty-state { text-align: center; padding: 32px 16px; color: var(--muted); font-size: 14px; }
 .empty-icon { font-size: 40px; margin-bottom: 10px; }
 
-/* STUDY PAGE */
-.study-header {
-  display: flex; align-items: center; gap: 10px; margin-bottom: 16px;
-}
+/* Study */
+.study-header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
 .back-btn {
   width: 36px; height: 36px; border-radius: 10px; border: 1.5px solid var(--border);
   background: var(--card); cursor: pointer; font-size: 18px;
   display: flex; align-items: center; justify-content: center;
 }
-.study-title { font-size: 16px; font-weight: 700; flex: 1; }
+.study-title { font-size: 16px; font-weight: 800; flex: 1; }
 .prog-wrap { margin-bottom: 14px; }
 .prog-meta { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-bottom: 5px; }
 .prog-track { height: 5px; background: rgba(0,0,0,0.07); border-radius: 10px; }
 .prog-fill { height: 100%; border-radius: 10px; transition: width 0.4s ease; }
 .score-row { display: flex; gap: 8px; margin-bottom: 14px; }
-.score-pill { font-size: 12px; font-weight: 600; padding: 5px 12px; border-radius: 20px; }
+.score-pill { font-size: 12px; font-weight: 700; padding: 5px 12px; border-radius: 20px; }
 
-/* FLASHCARD */
-.card-stage { perspective: 1000px; height: 230px; cursor: pointer; margin-bottom: 12px; user-select: none; }
+/* Flashcard */
+.card-stage { perspective: 1000px; height: 260px; cursor: pointer; margin-bottom: 12px; user-select: none; }
 .card-inner { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform 0.5s cubic-bezier(0.4,0,0.2,1); }
 .card-inner.flipped { transform: rotateY(180deg); }
 .card-face {
   position: absolute; inset: 0; border-radius: 20px;
   backface-visibility: hidden; -webkit-backface-visibility: hidden;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  padding: 20px; box-shadow: var(--shadow);
+  padding: 20px; box-shadow: var(--shadow); overflow: hidden;
 }
 .card-front { background: var(--card); }
 .card-back { transform: rotateY(180deg); }
-.card-badge { position: absolute; top: 14px; left: 14px; font-size: 11px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; padding: 3px 10px; border-radius: 20px; }
-.card-num { position: absolute; top: 14px; right: 14px; font-size: 12px; color: var(--muted); font-weight: 500; }
-.card-word { font-size: 28px; font-weight: 700; text-align: center; margin-bottom: 6px; line-height: 1.2; }
+.card-badge { position: absolute; top: 14px; left: 14px; font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; padding: 3px 10px; border-radius: 20px; }
+.card-num { position: absolute; top: 14px; right: 14px; font-size: 12px; color: var(--muted); font-weight: 600; }
+.card-word { font-size: 28px; font-weight: 800; text-align: center; margin-bottom: 6px; line-height: 1.2; }
 .card-ph { font-size: 13px; color: var(--muted); }
 .card-hint { position: absolute; bottom: 12px; font-size: 11px; color: var(--muted); }
-.card-vn { font-size: 22px; font-weight: 700; text-align: center; margin-bottom: 8px; line-height: 1.3; }
+.card-vn { font-size: 22px; font-weight: 800; text-align: center; margin-bottom: 8px; line-height: 1.3; }
 .card-ex { font-size: 13px; text-align: center; line-height: 1.55; font-style: italic; opacity: 0.7; }
+.card-img {
+  width: 80px; height: 80px; border-radius: 12px; object-fit: cover;
+  margin-bottom: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+}
 
 .flip-wrap { display: flex; justify-content: center; margin-bottom: 10px; }
-.flip-btn { font-family: var(--font); font-size: 14px; font-weight: 500; background: var(--card); border: 1.5px solid var(--border); color: var(--muted); padding: 10px 28px; border-radius: 12px; cursor: pointer; }
+.flip-btn { font-family: var(--font); font-size: 14px; font-weight: 700; background: var(--card); border: 1.5px solid var(--border); color: var(--muted); padding: 10px 28px; border-radius: 12px; cursor: pointer; }
 .action-row { display: flex; gap: 10px; margin-bottom: 16px; opacity: 0; pointer-events: none; transform: translateY(6px); transition: all 0.2s; }
 .action-row.vis { opacity: 1; pointer-events: all; transform: translateY(0); }
-.act-btn { flex: 1; padding: 13px; border-radius: 14px; font-family: var(--font); font-size: 15px; font-weight: 600; border: none; cursor: pointer; }
+.act-btn { flex: 1; padding: 13px; border-radius: 14px; font-family: var(--font); font-size: 15px; font-weight: 700; border: none; cursor: pointer; }
 .btn-again { background: var(--coral-l); color: var(--coral-d); }
 .btn-know { background: var(--teal-l); color: var(--teal-d); }
 
-/* DONE */
 .done-box { text-align: center; padding: 28px 16px; background: var(--card); border-radius: 20px; box-shadow: var(--shadow); }
-.done-box h2 { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+.done-box h2 { font-size: 20px; font-weight: 800; margin-bottom: 8px; }
 .done-box p { color: var(--muted); margin-bottom: 18px; font-size: 14px; line-height: 1.6; }
 .done-btns { display: flex; flex-direction: column; gap: 8px; }
 
 @keyframes pop { from { opacity:0; transform:scale(0.95) translateY(8px); } to { opacity:1; transform:scale(1) translateY(0); } }
 .card-stage { animation: pop 0.3s ease both; }
+
+.cloud-banner {
+  background: linear-gradient(135deg, var(--teal-l), var(--blue-l));
+  border: 1px solid rgba(29,158,117,0.2); border-radius: 14px;
+  padding: 12px 16px; margin-bottom: 16px; display: flex; align-items: center; gap: 10px;
+}
+.cloud-banner-icon { font-size: 22px; }
+.cloud-banner-text { font-size: 13px; font-weight: 600; color: var(--teal-d); flex: 1; }
+.cloud-banner-text small { display: block; color: var(--muted); font-weight: 500; font-size: 11px; margin-top: 2px; }
+
+#imgFile { display: none; }
 </style>
 </head>
 <body>
 
 <div class="nav">
   <div class="nav-logo">Flash<span>Card</span> ⚙️</div>
-  <div class="nav-tabs">
-    <button class="nav-tab active" onclick="showPage('home')">Bộ thẻ</button>
-    <button class="nav-tab" onclick="showPage('manage')" id="manageTab">Quản lý</button>
+  <div class="nav-right">
+    <div class="sync-status sync-load" id="syncStatus">⏳ Đang tải...</div>
+    <div class="nav-tabs">
+      <button class="nav-tab active" onclick="showPage('home')">Bộ thẻ</button>
+      <button class="nav-tab" onclick="showPage('manage')" id="manageTab">Quản lý</button>
+    </div>
   </div>
 </div>
 
 <!-- HOME PAGE -->
 <div class="page active" id="page-home">
-  <div style="margin-bottom:16px">
-    <div class="sec-title">Chọn bộ thẻ để học</div>
-    <div class="deck-list" id="deckListHome"></div>
+  <div class="cloud-banner">
+    <div class="cloud-banner-icon">☁️</div>
+    <div class="cloud-banner-text">
+      Dữ liệu đồng bộ đám mây
+      <small>Thêm từ ở máy tính → mở điện thoại lên sẽ thấy ngay!</small>
+    </div>
   </div>
+  <div class="sec-title">Chọn bộ thẻ để học</div>
+  <div class="deck-list" id="deckListHome"></div>
 </div>
 
 <!-- MANAGE PAGE -->
@@ -283,6 +321,17 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
       <label class="form-label">Câu ví dụ</label>
       <input class="form-input" id="wordEx" placeholder="VD: Annual calibration is required.">
     </div>
+    <div class="form-group">
+      <label class="form-label">Hình ảnh (tuỳ chọn)</label>
+      <div class="img-upload-area" id="imgUploadArea" onclick="document.getElementById('imgFile').click()">
+        <img class="img-preview" id="imgPreview" alt="">
+        <button class="img-clear-btn" id="imgClearBtn" onclick="event.stopPropagation();clearImage()">✕</button>
+        <div class="img-upload-hint" id="imgHint">
+          <span>🖼️</span>Chọn ảnh từ thiết bị
+        </div>
+      </div>
+      <input type="file" id="imgFile" accept="image/*" onchange="handleImageUpload(event)">
+    </div>
     <div class="modal-btns">
       <button class="btn btn-secondary" onclick="closeModal('wordModal')">Huỷ</button>
       <button class="btn btn-primary" onclick="saveWord()">Lưu</button>
@@ -330,16 +379,48 @@ const COLORS = [
   { name:"green",  bg:"#639922", light:"#EAF3DE", dark:"#3B6D11" },
 ];
 
-// DATA
-function loadData() {
-  try { return JSON.parse(localStorage.getItem("fcData")) || { decks:[], words:{} }; }
-  catch(e) { return { decks:[], words:{} }; }
+// ---- CLOUD STORAGE (window.storage) ----
+const STORAGE_KEY = "fcData_v2";
+
+async function loadData() {
+  try {
+    const res = await window.storage.get(STORAGE_KEY, true); // shared=true → đồng bộ mọi thiết bị
+    if (res && res.value) {
+      return JSON.parse(res.value);
+    }
+  } catch(e) {}
+  // fallback: localStorage
+  try {
+    const local = localStorage.getItem("fcData");
+    if (local) return JSON.parse(local);
+  } catch(e) {}
+  return { decks: [], words: {} };
 }
-function saveData(d) { localStorage.setItem("fcData", JSON.stringify(d)); }
+
+async function saveData(d) {
+  const json = JSON.stringify(d);
+  setSyncStatus("load");
+  try {
+    await window.storage.set(STORAGE_KEY, json, true); // shared=true
+    localStorage.setItem("fcData", json); // backup local
+    setSyncStatus("ok");
+  } catch(e) {
+    // fallback localStorage
+    localStorage.setItem("fcData", json);
+    setSyncStatus("err");
+  }
+}
+
+function setSyncStatus(s) {
+  const el = document.getElementById("syncStatus");
+  if (s === "ok")   { el.className = "sync-status sync-ok";   el.textContent = "✓ Đã đồng bộ"; }
+  if (s === "err")  { el.className = "sync-status sync-err";  el.textContent = "⚠ Lưu cục bộ"; }
+  if (s === "load") { el.className = "sync-status sync-load"; el.textContent = "⏳ Đang lưu..."; }
+}
 
 // Seed default deck
-function seedDefault() {
-  const d = loadData();
+async function seedDefault() {
+  const d = await loadData();
   if (d.decks.length === 0) {
     const id = "deck_default";
     d.decks.push({ id, name:"Hiệu Chuẩn & Quan Trắc", emoji:"⚙️", color:"teal" });
@@ -353,36 +434,73 @@ function seedDefault() {
       { id:"w7", en:"Sensor",        ph:"/ˈsɛnsər/",         vn:"Cảm biến",              ex:"Install the temperature sensor first." },
       { id:"w8", en:"Humidity",      ph:"/hjuːˈmɪdɪti/",    vn:"Độ ẩm",                 ex:"Humidity is measured in percent." },
     ];
-    saveData(d);
+    await saveData(d);
+  } else {
+    setSyncStatus("ok");
   }
 }
 
 // STATE
 let currentPage = "home";
-let editingDeckId = null;
-let selectedColor = "teal";
-let activeDeckId = null;
-let editingWordId = null;
+let editingDeckId = null, selectedColor = "teal";
+let activeDeckId = null, editingWordId = null;
 let studyQueue = [], studyIdx = 0, flipped = false;
 let knowSet = new Set(), againSet = new Set();
+let currentImageData = null; // base64 for current word image
+
+// IMAGE HANDLING
+function handleImageUpload(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    currentImageData = ev.target.result;
+    const preview = document.getElementById("imgPreview");
+    const hint = document.getElementById("imgHint");
+    const clearBtn = document.getElementById("imgClearBtn");
+    preview.src = currentImageData;
+    preview.style.display = "block";
+    hint.style.display = "none";
+    clearBtn.style.display = "flex";
+  };
+  reader.readAsDataURL(file);
+}
+function clearImage() {
+  currentImageData = null;
+  const preview = document.getElementById("imgPreview");
+  const hint = document.getElementById("imgHint");
+  const clearBtn = document.getElementById("imgClearBtn");
+  preview.style.display = "none";
+  hint.style.display = "block";
+  clearBtn.style.display = "none";
+  document.getElementById("imgFile").value = "";
+}
+function resetImageUI() {
+  currentImageData = null;
+  document.getElementById("imgPreview").style.display = "none";
+  document.getElementById("imgPreview").src = "";
+  document.getElementById("imgHint").style.display = "block";
+  document.getElementById("imgClearBtn").style.display = "none";
+  document.getElementById("imgFile").value = "";
+}
 
 // PAGES
 function showPage(p) {
   document.querySelectorAll(".page").forEach(el => el.classList.remove("active"));
   document.querySelectorAll(".nav-tab").forEach(el => el.classList.remove("active"));
-  document.getElementById("page-" + p).classList.add("active");
+  document.getElementById("page-"+p).classList.add("active");
   const tabs = document.querySelectorAll(".nav-tab");
-  if (p === "home") tabs[0].classList.add("active");
-  if (p === "manage") tabs[1].classList.add("active");
+  if (p==="home")   tabs[0].classList.add("active");
+  if (p==="manage") tabs[1].classList.add("active");
   currentPage = p;
-  if (p === "home") renderHome();
-  if (p === "manage") renderManage();
+  if (p==="home")   renderHome();
+  if (p==="manage") renderManage();
 }
 function goHome() { showPage("home"); }
 
 // RENDER HOME
-function renderHome() {
-  const d = loadData();
+async function renderHome() {
+  const d = await loadData();
   const el = document.getElementById("deckListHome");
   if (d.decks.length === 0) {
     el.innerHTML = `<div class="empty-state"><div class="empty-icon">📚</div><p>Chưa có bộ thẻ nào.<br>Vào tab <strong>Quản lý</strong> để tạo nhé!</p></div>`;
@@ -403,8 +521,8 @@ function renderHome() {
 }
 
 // RENDER MANAGE
-function renderManage() {
-  const d = loadData();
+async function renderManage() {
+  const d = await loadData();
   const el = document.getElementById("deckListManage");
   if (d.decks.length === 0) {
     el.innerHTML = `<div class="empty-state"><div class="empty-icon">📂</div><p>Chưa có bộ thẻ nào</p></div>`;
@@ -428,63 +546,55 @@ function renderManage() {
 
 // DECK MODAL
 function buildColorRow(selected) {
-  const el = document.getElementById("colorRow");
-  el.innerHTML = COLORS.map(c =>
+  document.getElementById("colorRow").innerHTML = COLORS.map(c =>
     `<div class="color-dot${c.name===selected?' selected':''}" style="background:${c.bg}" onclick="selectColor('${c.name}')"></div>`
   ).join("");
 }
-function selectColor(name) {
-  selectedColor = name;
-  buildColorRow(name);
-}
+function selectColor(name) { selectedColor = name; buildColorRow(name); }
 function openAddDeck() {
   editingDeckId = null; selectedColor = "teal";
   document.getElementById("deckModalTitle").textContent = "Tạo bộ thẻ mới";
   document.getElementById("deckName").value = "";
   document.getElementById("deckEmoji").value = "";
-  buildColorRow("teal");
-  openModal("deckModal");
+  buildColorRow("teal"); openModal("deckModal");
 }
-function openEditDeck(id) {
-  const d = loadData();
+async function openEditDeck(id) {
+  const d = await loadData();
   const deck = d.decks.find(dk => dk.id === id);
   if (!deck) return;
   editingDeckId = id; selectedColor = deck.color;
   document.getElementById("deckModalTitle").textContent = "Chỉnh sửa bộ thẻ";
   document.getElementById("deckName").value = deck.name;
   document.getElementById("deckEmoji").value = deck.emoji;
-  buildColorRow(deck.color);
-  openModal("deckModal");
+  buildColorRow(deck.color); openModal("deckModal");
 }
-function saveDeck() {
+async function saveDeck() {
   const name = document.getElementById("deckName").value.trim();
   const emoji = document.getElementById("deckEmoji").value.trim() || "📚";
   if (!name) { alert("Vui lòng nhập tên bộ thẻ!"); return; }
-  const d = loadData();
+  const d = await loadData();
   if (editingDeckId) {
     const deck = d.decks.find(dk => dk.id === editingDeckId);
     if (deck) { deck.name = name; deck.emoji = emoji; deck.color = selectedColor; }
   } else {
-    const id = "deck_" + Date.now();
+    const id = "deck_"+Date.now();
     d.decks.push({ id, name, emoji, color: selectedColor });
     d.words[id] = [];
   }
-  saveData(d); closeModal("deckModal"); renderManage();
+  await saveData(d); closeModal("deckModal"); renderManage();
 }
 
 // DECK DETAIL
-function openDeckDetail(id) {
+async function openDeckDetail(id) {
   activeDeckId = id;
-  const d = loadData();
+  const d = await loadData();
   const deck = d.decks.find(dk => dk.id === id);
   if (!deck) return;
-  const words = d.words[id] || [];
-  document.getElementById("detailTitle").textContent = deck.emoji + " " + deck.name;
-  renderDetailWords(id);
-  openModal("detailModal");
+  document.getElementById("detailTitle").textContent = deck.emoji+" "+deck.name;
+  renderDetailWords(id); openModal("detailModal");
 }
-function renderDetailWords(id) {
-  const d = loadData();
+async function renderDetailWords(id) {
+  const d = await loadData();
   const words = d.words[id] || [];
   const c = COLORS.find(c => c.name === (d.decks.find(dk=>dk.id===id)||{}).color) || COLORS[0];
   const el = document.getElementById("detailWordList");
@@ -492,18 +602,22 @@ function renderDetailWords(id) {
     el.innerHTML = `<div class="empty-state" style="padding:16px"><div class="empty-icon">📝</div><p>Chưa có từ nào.<br>Nhấn + để thêm từ mới!</p></div>`;
     return;
   }
-  el.innerHTML = `<div class="word-list">${words.map(w =>
-    `<div class="word-item">
+  el.innerHTML = `<div class="word-list">${words.map(w => {
+    const thumb = w.img
+      ? `<div class="word-item-thumb"><img src="${w.img}" alt="${w.en}"></div>`
+      : `<div class="word-item-thumb">📖</div>`;
+    return `<div class="word-item">
+      ${thumb}
       <div class="word-item-info">
         <div class="word-item-en">${w.en}</div>
-        <div class="word-item-vn">${w.vn}${w.ph ? ' · ' + w.ph : ''}</div>
+        <div class="word-item-vn">${w.vn}${w.ph ? ' · '+w.ph : ''}</div>
       </div>
       <div style="display:flex;gap:6px">
         <button class="icon-btn" onclick="openEditWord('${id}','${w.id}')">✏️</button>
         <button class="icon-btn" onclick="deleteWord('${id}','${w.id}')">🗑</button>
       </div>
-    </div>`
-  ).join("")}</div>`;
+    </div>`;
+  }).join("")}</div>`;
 }
 
 // WORD MODAL
@@ -514,12 +628,12 @@ function openAddWord() {
   document.getElementById("wordPh").value = "";
   document.getElementById("wordVn").value = "";
   document.getElementById("wordEx").value = "";
+  resetImageUI();
   openModal("wordModal");
 }
-function openEditWord(deckId, wordId) {
-  const d = loadData();
-  const words = d.words[deckId] || [];
-  const w = words.find(w => w.id === wordId);
+async function openEditWord(deckId, wordId) {
+  const d = await loadData();
+  const w = (d.words[deckId]||[]).find(w => w.id === wordId);
   if (!w) return;
   editingWordId = wordId;
   document.getElementById("wordModalTitle").textContent = "Chỉnh sửa từ";
@@ -527,39 +641,49 @@ function openEditWord(deckId, wordId) {
   document.getElementById("wordPh").value = w.ph || "";
   document.getElementById("wordVn").value = w.vn;
   document.getElementById("wordEx").value = w.ex || "";
+  // Load existing image
+  if (w.img) {
+    currentImageData = w.img;
+    document.getElementById("imgPreview").src = w.img;
+    document.getElementById("imgPreview").style.display = "block";
+    document.getElementById("imgHint").style.display = "none";
+    document.getElementById("imgClearBtn").style.display = "flex";
+  } else {
+    resetImageUI();
+  }
   openModal("wordModal");
 }
-function saveWord() {
+async function saveWord() {
   const en = document.getElementById("wordEn").value.trim();
   const ph = document.getElementById("wordPh").value.trim();
   const vn = document.getElementById("wordVn").value.trim();
   const ex = document.getElementById("wordEx").value.trim();
   if (!en || !vn) { alert("Vui lòng nhập từ tiếng Anh và nghĩa tiếng Việt!"); return; }
-  const d = loadData();
+  const d = await loadData();
   if (!d.words[activeDeckId]) d.words[activeDeckId] = [];
   if (editingWordId) {
     const w = d.words[activeDeckId].find(w => w.id === editingWordId);
-    if (w) { w.en = en; w.ph = ph; w.vn = vn; w.ex = ex; }
+    if (w) { w.en = en; w.ph = ph; w.vn = vn; w.ex = ex; w.img = currentImageData || null; }
   } else {
-    d.words[activeDeckId].push({ id:"w_"+Date.now(), en, ph, vn, ex });
+    d.words[activeDeckId].push({ id:"w_"+Date.now(), en, ph, vn, ex, img: currentImageData || null });
   }
-  saveData(d); closeModal("wordModal"); renderDetailWords(activeDeckId);
+  await saveData(d); closeModal("wordModal"); renderDetailWords(activeDeckId);
 }
-function deleteWord(deckId, wordId) {
-  const d = loadData();
+async function deleteWord(deckId, wordId) {
+  const d = await loadData();
   d.words[deckId] = (d.words[deckId]||[]).filter(w => w.id !== wordId);
-  saveData(d); renderDetailWords(deckId);
+  await saveData(d); renderDetailWords(deckId);
 }
 
 // DELETE DECK
 function confirmDeleteDeck() {
   document.getElementById("confirmTitle").textContent = "Xoá bộ thẻ?";
   document.getElementById("confirmMsg").textContent = "Tất cả từ vựng trong bộ thẻ này sẽ bị xoá. Không thể khôi phục!";
-  document.getElementById("confirmOkBtn").onclick = () => {
-    const d = loadData();
+  document.getElementById("confirmOkBtn").onclick = async () => {
+    const d = await loadData();
     d.decks = d.decks.filter(dk => dk.id !== activeDeckId);
     delete d.words[activeDeckId];
-    saveData(d); closeModal("confirmModal"); closeModal("detailModal"); renderManage();
+    await saveData(d); closeModal("confirmModal"); closeModal("detailModal"); renderManage();
   };
   openModal("confirmModal");
 }
@@ -574,8 +698,8 @@ document.querySelectorAll(".overlay").forEach(o => {
 // STUDY
 function shuffle(a) { for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]; } return a; }
 
-function startStudy(deckId) {
-  const d = loadData();
+async function startStudy(deckId) {
+  const d = await loadData();
   const deck = d.decks.find(dk => dk.id === deckId);
   const words = d.words[deckId] || [];
   if (words.length === 0) { alert("Bộ thẻ này chưa có từ nào! Vào Quản lý để thêm từ nhé."); return; }
@@ -585,7 +709,7 @@ function startStudy(deckId) {
   knowSet.clear(); againSet.clear();
   const c = COLORS.find(c => c.name === deck.color) || COLORS[0];
   document.getElementById("progFill").style.background = c.bg;
-  document.getElementById("studyTitle").textContent = deck.emoji + " " + deck.name;
+  document.getElementById("studyTitle").textContent = deck.emoji+" "+deck.name;
   showPage("study");
   updateStudyUI(); renderStudyCard();
 }
@@ -594,21 +718,19 @@ function updateStudyUI() {
   const total = studyQueue.length, done = studyIdx;
   const pct = total ? Math.round((done/total)*100) : 0;
   document.getElementById("progLabel").textContent = `Thẻ ${Math.min(done+1,total)} / ${total}`;
-  document.getElementById("progPct").textContent = pct + "%";
-  document.getElementById("progFill").style.width = pct + "%";
+  document.getElementById("progPct").textContent = pct+"%";
+  document.getElementById("progFill").style.width = pct+"%";
   document.getElementById("sKnow").textContent = knowSet.size;
   document.getElementById("sAgain").textContent = againSet.size;
-  document.getElementById("sLeft").textContent = Math.max(0, total - done);
+  document.getElementById("sLeft").textContent = Math.max(0, total-done);
 }
 
-function renderStudyCard() {
+async function renderStudyCard() {
   const area = document.getElementById("studyArea");
   const flipW = document.getElementById("flipWrap");
   const actRow = document.getElementById("actionRow");
   if (studyIdx >= studyQueue.length) {
     flipW.style.display = "none"; actRow.classList.remove("vis");
-    const d = loadData();
-    const deck = d.decks.find(dk => dk.id === activeDeckId) || {};
     area.innerHTML = `<div class="done-box">
       <div style="font-size:48px;margin-bottom:12px">🎉</div>
       <h2>Hoàn thành!</h2>
@@ -622,17 +744,20 @@ function renderStudyCard() {
     return;
   }
   const w = studyQueue[studyIdx];
-  const d = loadData();
+  const d = await loadData();
   const deck = d.decks.find(dk => dk.id === activeDeckId) || {};
   const c = COLORS.find(c => c.name === deck.color) || COLORS[0];
   flipped = false;
   flipW.style.display = "flex"; flipW.style.opacity = "1";
   actRow.classList.remove("vis");
+  const imgFront = w.img ? `<img class="card-img" src="${w.img}" alt="${w.en}">` : "";
+  const imgBack  = w.img ? `<img class="card-img" src="${w.img}" alt="${w.en}">` : "";
   area.innerHTML = `<div class="card-stage" onclick="flipCard()">
     <div class="card-inner" id="cardInner">
       <div class="card-face card-front">
         <span class="card-badge" style="background:${c.light};color:${c.dark}">${deck.emoji} ${deck.name}</span>
         <span class="card-num">${studyIdx+1}/${studyQueue.length}</span>
+        ${imgFront}
         <div class="card-word">${w.en}</div>
         <div class="card-ph">${w.ph||""}</div>
         <div class="card-hint">chạm để lật ↕</div>
@@ -640,6 +765,7 @@ function renderStudyCard() {
       <div class="card-face card-back" style="background:${c.light}">
         <span class="card-badge" style="background:${c.bg};color:#fff">${deck.emoji} ${deck.name}</span>
         <span class="card-num">${studyIdx+1}/${studyQueue.length}</span>
+        ${imgBack}
         <div class="card-vn" style="color:${c.dark}">${w.vn}</div>
         ${w.ex?`<div class="card-ex" style="color:${c.dark}">"${w.ex}"</div>`:""}
         <div class="card-hint">chạm để lật lại ↕</div>
@@ -661,15 +787,14 @@ function flipCard() {
 }
 function markKnow()  { knowSet.add(studyQueue[studyIdx].id);  studyIdx++; updateStudyUI(); renderStudyCard(); }
 function markAgain() { againSet.add(studyQueue[studyIdx].id); studyIdx++; updateStudyUI(); renderStudyCard(); }
-function reviewAgain() {
-  const d = loadData();
+async function reviewAgain() {
+  const d = await loadData();
   const allWords = d.words[activeDeckId] || [];
   studyQueue = shuffle(allWords.filter(w => againSet.has(w.id)));
   studyIdx=0; flipped=false; knowSet.clear(); againSet.clear();
   updateStudyUI(); renderStudyCard();
 }
 
-// KEYBOARD
 document.addEventListener("keydown", e => {
   if (currentPage !== "study") return;
   if (e.code==="Space") { e.preventDefault(); flipCard(); }
@@ -678,8 +803,10 @@ document.addEventListener("keydown", e => {
 });
 
 // INIT
-seedDefault();
-renderHome();
+(async () => {
+  await seedDefault();
+  renderHome();
+})();
 </script>
 </body>
 </html>
