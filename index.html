@@ -2,472 +2,684 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FlashCard – Hiệu Chuẩn & Quan Trắc</title>
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>FlashCard – Học Từ Vựng</title>
 <style>
-  :root {
-    --teal: #1D9E75; --teal-light: #E1F5EE; --teal-dark: #085041;
-    --purple: #7F77DD; --purple-light: #EEEDFE; --purple-dark: #26215C;
-    --blue: #378ADD; --blue-light: #E6F1FB; --blue-dark: #042C53;
-    --amber: #BA7517; --amber-light: #FAEEDA; --amber-dark: #412402;
-    --coral: #D85A30; --coral-light: #FAECE7; --coral-dark: #4A1B0C;
-    --bg: #F7F5F0;
-    --card-bg: #FFFFFF;
-    --text: #1a1a1a;
-    --text-muted: #6b6b6b;
-    --border: rgba(0,0,0,0.08);
-    --radius: 18px;
-    --shadow: 0 4px 24px rgba(0,0,0,0.08);
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    background-image:
-      radial-gradient(circle at 15% 10%, rgba(29,158,117,0.08) 0%, transparent 50%),
-      radial-gradient(circle at 85% 80%, rgba(127,119,221,0.08) 0%, transparent 50%);
-  }
+:root {
+  --bg: #F2F0EC;
+  --card: #FFFFFF;
+  --text: #1C1C1E;
+  --muted: #6B6B6B;
+  --border: rgba(0,0,0,0.09);
+  --teal: #1D9E75; --teal-l: #E1F5EE; --teal-d: #085041;
+  --purple: #7F77DD; --purple-l: #EEEDFE; --purple-d: #3C3489;
+  --blue: #378ADD; --blue-l: #E6F1FB; --blue-d: #0C447C;
+  --amber: #BA7517; --amber-l: #FAEEDA; --amber-d: #633806;
+  --coral: #D85A30; --coral-l: #FAECE7; --coral-d: #993C1D;
+  --pink: #D4537E; --pink-l: #FBEAF0; --pink-d: #72243E;
+  --green: #639922; --green-l: #EAF3DE; --green-d: #3B6D11;
+  --r: 16px; --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+  --shadow: 0 2px 16px rgba(0,0,0,0.08);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; }
 
-  /* ── Header ── */
-  header {
-    padding: 2rem 2rem 0;
-    display: flex; align-items: flex-end; justify-content: space-between;
-    max-width: 760px; margin: 0 auto;
-  }
-  .logo-block h1 {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
-    font-size: 2rem; line-height: 1.1;
-    color: var(--text);
-  }
-  .logo-block p { font-size: 0.85rem; color: var(--text-muted); margin-top: 4px; }
-  .stats-header {
-    display: flex; gap: 10px; align-items: center;
-  }
-  .stat-pill {
-    font-size: 12px; font-weight: 500;
-    padding: 5px 12px; border-radius: 20px;
-    display: flex; align-items: center; gap: 5px;
-  }
-  .stat-know { background: var(--teal-light); color: var(--teal-dark); }
-  .stat-again { background: var(--coral-light); color: var(--coral-dark); }
+/* NAV */
+.nav {
+  background: var(--card); border-bottom: 1px solid var(--border);
+  padding: 12px 16px; display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 100;
+}
+.nav-logo { font-size: 17px; font-weight: 700; }
+.nav-logo span { color: var(--teal); }
+.nav-tabs { display: flex; gap: 4px; }
+.nav-tab {
+  font-family: var(--font); font-size: 13px; font-weight: 500;
+  padding: 6px 14px; border-radius: 20px; border: 1.5px solid var(--border);
+  background: transparent; color: var(--muted); cursor: pointer;
+}
+.nav-tab.active { background: var(--teal); border-color: var(--teal); color: #fff; }
 
-  /* ── Main layout ── */
-  main {
-    max-width: 760px; margin: 0 auto;
-    padding: 1.5rem 2rem 3rem;
-  }
+/* PAGE */
+.page { display: none; padding: 16px; max-width: 640px; margin: 0 auto; }
+.page.active { display: block; }
 
-  /* ── Category tabs ── */
-  .cat-scroll {
-    display: flex; gap: 8px; overflow-x: auto;
-    padding-bottom: 4px; margin-bottom: 1.5rem;
-    scrollbar-width: none;
-  }
-  .cat-scroll::-webkit-scrollbar { display: none; }
-  .cat-btn {
-    white-space: nowrap; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
-    font-size: 13px; font-weight: 500;
-    padding: 6px 16px; border-radius: 20px;
-    border: 1.5px solid var(--border);
-    background: var(--card-bg);
-    color: var(--text-muted);
-    cursor: pointer; transition: all 0.2s;
-  }
-  .cat-btn:hover { border-color: var(--teal); color: var(--teal); }
-  .cat-btn.active { background: var(--teal); border-color: var(--teal); color: #fff; }
+/* SECTION TITLE */
+.sec-title { font-size: 13px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 10px; }
 
-  /* ── Progress ── */
-  .progress-wrap { margin-bottom: 1.5rem; }
-  .progress-meta {
-    display: flex; justify-content: space-between;
-    font-size: 12px; color: var(--text-muted);
-    margin-bottom: 6px;
-  }
-  .progress-track {
-    height: 5px; background: rgba(0,0,0,0.06);
-    border-radius: 10px; overflow: hidden;
-  }
-  .progress-fill {
-    height: 100%; background: var(--teal);
-    border-radius: 10px;
-    transition: width 0.4s cubic-bezier(0.4,0,0.2,1);
-  }
+/* CARDS LIST */
+.deck-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+.deck-card {
+  background: var(--card); border-radius: var(--r); border: 1px solid var(--border);
+  padding: 14px 16px; display: flex; align-items: center; gap: 12px; cursor: pointer;
+  box-shadow: var(--shadow); transition: transform 0.15s;
+}
+.deck-card:active { transform: scale(0.98); }
+.deck-icon {
+  width: 44px; height: 44px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; flex-shrink: 0;
+}
+.deck-info { flex: 1; min-width: 0; }
+.deck-name { font-size: 15px; font-weight: 600; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.deck-meta { font-size: 12px; color: var(--muted); }
+.deck-arrow { color: var(--muted); font-size: 18px; }
+.deck-actions { display: flex; gap: 6px; }
+.icon-btn {
+  width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--border);
+  background: var(--bg); cursor: pointer; font-size: 15px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font);
+}
 
-  /* ── Flashcard ── */
-  .card-stage {
-    perspective: 1200px;
-    height: 260px;
-    cursor: pointer;
-    margin-bottom: 1rem;
-  }
-  .card-inner {
-    width: 100%; height: 100%;
-    position: relative;
-    transform-style: preserve-3d;
-    transition: transform 0.55s cubic-bezier(0.4,0,0.2,1);
-  }
-  .card-inner.flipped { transform: rotateY(180deg); }
-  .card-face {
-    position: absolute; inset: 0;
-    border-radius: var(--radius);
-    backface-visibility: hidden;
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    padding: 2rem;
-    box-shadow: var(--shadow);
-  }
-  .card-front { background: var(--card-bg); }
-  .card-back { transform: rotateY(180deg); }
+/* ADD DECK BTN */
+.add-deck-btn {
+  width: 100%; padding: 13px; border-radius: var(--r);
+  border: 2px dashed var(--border); background: transparent;
+  font-family: var(--font); font-size: 14px; font-weight: 500;
+  color: var(--muted); cursor: pointer; transition: all 0.15s;
+}
+.add-deck-btn:hover { border-color: var(--teal); color: var(--teal); }
 
-  .card-cat-badge {
-    font-size: 11px; font-weight: 600; letter-spacing: 0.06em;
-    text-transform: uppercase; padding: 4px 12px;
-    border-radius: 20px; margin-bottom: 16px;
-    position: absolute; top: 20px; left: 20px;
-  }
-  .card-num {
-    position: absolute; top: 20px; right: 20px;
-    font-size: 12px; color: var(--text-muted);
-  }
-  .card-word {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
-    font-size: 2.2rem; text-align: center;
-    color: var(--text); line-height: 1.2; margin-bottom: 8px;
-  }
-  .card-phonetic { font-size: 14px; color: var(--text-muted); }
-  .card-flip-hint {
-    position: absolute; bottom: 18px;
-    font-size: 11px; color: var(--text-muted);
-    display: flex; align-items: center; gap: 4px;
-  }
-  .card-vn {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
-    font-size: 1.9rem; text-align: center;
-    line-height: 1.25; margin-bottom: 12px;
-  }
-  .card-ex {
-    font-size: 13px; text-align: center;
-    line-height: 1.6; font-style: italic;
-    opacity: 0.75; max-width: 360px;
-  }
+/* MODAL */
+.overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.4); z-index: 200;
+  align-items: flex-end; justify-content: center;
+}
+.overlay.open { display: flex; }
+.modal {
+  background: var(--card); border-radius: 24px 24px 0 0;
+  padding: 20px 20px calc(20px + env(safe-area-inset-bottom, 0px));
+  width: 100%; max-width: 640px; max-height: 90vh; overflow-y: auto;
+}
+.modal-handle { width: 36px; height: 4px; background: var(--border); border-radius: 4px; margin: 0 auto 16px; }
+.modal-title { font-size: 17px; font-weight: 700; margin-bottom: 16px; }
+.form-group { margin-bottom: 14px; }
+.form-label { font-size: 13px; font-weight: 600; color: var(--muted); margin-bottom: 6px; display: block; }
+.form-input {
+  width: 100%; padding: 11px 14px; border-radius: 12px;
+  border: 1.5px solid var(--border); background: var(--bg);
+  font-family: var(--font); font-size: 15px; color: var(--text);
+  outline: none; transition: border-color 0.15s;
+}
+.form-input:focus { border-color: var(--teal); }
+.color-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.color-dot {
+  width: 32px; height: 32px; border-radius: 50%; cursor: pointer;
+  border: 3px solid transparent; transition: transform 0.15s;
+}
+.color-dot.selected { border-color: var(--text); transform: scale(1.15); }
+.modal-btns { display: flex; gap: 10px; margin-top: 6px; }
+.btn {
+  flex: 1; padding: 13px; border-radius: 14px; font-family: var(--font);
+  font-size: 15px; font-weight: 600; cursor: pointer; border: none;
+  transition: opacity 0.15s;
+}
+.btn:active { opacity: 0.75; }
+.btn-primary { background: var(--teal); color: #fff; }
+.btn-secondary { background: var(--bg); color: var(--muted); border: 1.5px solid var(--border); }
+.btn-danger { background: var(--coral-l); color: var(--coral-d); }
 
-  /* ── Action buttons ── */
-  .action-row {
-    display: flex; gap: 12px; justify-content: center;
-    margin-bottom: 1.5rem;
-    opacity: 0; pointer-events: none;
-    transform: translateY(8px);
-    transition: all 0.25s;
-  }
-  .action-row.visible { opacity: 1; pointer-events: all; transform: translateY(0); }
-  .action-btn {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
-    font-size: 14px; font-weight: 500;
-    padding: 11px 28px; border-radius: 12px;
-    border: 1.5px solid; cursor: pointer;
-    transition: all 0.15s;
-    display: flex; align-items: center; gap: 7px;
-  }
-  .btn-again {
-    background: var(--coral-light); color: var(--coral-dark);
-    border-color: rgba(216,90,48,0.3);
-  }
-  .btn-again:hover { background: #f5c4b3; }
-  .btn-know {
-    background: var(--teal-light); color: var(--teal-dark);
-    border-color: rgba(29,158,117,0.3);
-  }
-  .btn-know:hover { background: #9FE1CB; }
+/* WORD LIST */
+.word-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+.word-item {
+  background: var(--card); border-radius: 12px; border: 1px solid var(--border);
+  padding: 12px 14px; display: flex; align-items: center; gap: 10px;
+}
+.word-item-info { flex: 1; min-width: 0; }
+.word-item-en { font-size: 14px; font-weight: 600; }
+.word-item-vn { font-size: 12px; color: var(--muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.empty-state { text-align: center; padding: 32px 16px; color: var(--muted); font-size: 14px; }
+.empty-icon { font-size: 40px; margin-bottom: 10px; }
 
-  .flip-btn-wrap {
-    display: flex; justify-content: center; margin-bottom: 1rem;
-    transition: opacity 0.2s;
-  }
-  .flip-btn {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
-    font-size: 14px; font-weight: 500; color: var(--text-muted);
-    background: var(--card-bg); border: 1.5px solid var(--border);
-    padding: 9px 24px; border-radius: 10px; cursor: pointer;
-    transition: all 0.15s;
-  }
-  .flip-btn:hover { border-color: var(--teal); color: var(--teal); }
+/* STUDY PAGE */
+.study-header {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 16px;
+}
+.back-btn {
+  width: 36px; height: 36px; border-radius: 10px; border: 1.5px solid var(--border);
+  background: var(--card); cursor: pointer; font-size: 18px;
+  display: flex; align-items: center; justify-content: center;
+}
+.study-title { font-size: 16px; font-weight: 700; flex: 1; }
+.prog-wrap { margin-bottom: 14px; }
+.prog-meta { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-bottom: 5px; }
+.prog-track { height: 5px; background: rgba(0,0,0,0.07); border-radius: 10px; }
+.prog-fill { height: 100%; border-radius: 10px; transition: width 0.4s ease; }
+.score-row { display: flex; gap: 8px; margin-bottom: 14px; }
+.score-pill { font-size: 12px; font-weight: 600; padding: 5px 12px; border-radius: 20px; }
 
-  /* ── Word list panel ── */
-  .panel-toggle {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
-    font-size: 13px; font-weight: 500;
-    background: none; border: 1.5px solid var(--border);
-    padding: 7px 16px; border-radius: 10px;
-    cursor: pointer; color: var(--text-muted);
-    transition: all 0.15s; display: flex; align-items: center; gap: 6px;
-    margin: 0 auto 1rem;
-  }
-  .panel-toggle:hover { border-color: var(--purple); color: var(--purple); }
-  .word-list-panel {
-    background: var(--card-bg);
-    border-radius: var(--radius); border: 1.5px solid var(--border);
-    overflow: hidden;
-    max-height: 0; transition: max-height 0.4s ease;
-  }
-  .word-list-panel.open { max-height: 800px; }
-  .word-list-inner { padding: 1rem 1.25rem; }
-  .word-row {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 9px 0; border-bottom: 1px solid var(--border);
-    font-size: 13px;
-  }
-  .word-row:last-child { border-bottom: none; }
-  .word-en { font-weight: 500; color: var(--text); }
-  .word-vn { color: var(--text-muted); }
-  .word-dot {
-    width: 8px; height: 8px; border-radius: 50%;
-    background: var(--border); flex-shrink: 0;
-  }
-  .word-dot.known { background: var(--teal); }
-  .word-dot.again { background: var(--coral); }
+/* FLASHCARD */
+.card-stage { perspective: 1000px; height: 230px; cursor: pointer; margin-bottom: 12px; user-select: none; }
+.card-inner { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform 0.5s cubic-bezier(0.4,0,0.2,1); }
+.card-inner.flipped { transform: rotateY(180deg); }
+.card-face {
+  position: absolute; inset: 0; border-radius: 20px;
+  backface-visibility: hidden; -webkit-backface-visibility: hidden;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 20px; box-shadow: var(--shadow);
+}
+.card-front { background: var(--card); }
+.card-back { transform: rotateY(180deg); }
+.card-badge { position: absolute; top: 14px; left: 14px; font-size: 11px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; padding: 3px 10px; border-radius: 20px; }
+.card-num { position: absolute; top: 14px; right: 14px; font-size: 12px; color: var(--muted); font-weight: 500; }
+.card-word { font-size: 28px; font-weight: 700; text-align: center; margin-bottom: 6px; line-height: 1.2; }
+.card-ph { font-size: 13px; color: var(--muted); }
+.card-hint { position: absolute; bottom: 12px; font-size: 11px; color: var(--muted); }
+.card-vn { font-size: 22px; font-weight: 700; text-align: center; margin-bottom: 8px; line-height: 1.3; }
+.card-ex { font-size: 13px; text-align: center; line-height: 1.55; font-style: italic; opacity: 0.7; }
 
-  /* ── Done screen ── */
-  .done-screen {
-    text-align: center; padding: 2.5rem 1rem;
-    background: var(--card-bg);
-    border-radius: var(--radius); box-shadow: var(--shadow);
-  }
-  .done-icon { font-size: 56px; margin-bottom: 12px; }
-  .done-screen h2 { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size: 1.8rem; margin-bottom: 8px; }
-  .done-screen p { color: var(--text-muted); margin-bottom: 1.5rem; line-height: 1.6; }
-  .done-btn {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
-    font-size: 14px; font-weight: 500;
-    padding: 10px 24px; border-radius: 12px;
-    border: 1.5px solid var(--border);
-    background: var(--card-bg); cursor: pointer;
-    margin: 4px; transition: all 0.15s;
-    color: var(--text);
-  }
-  .done-btn:hover { background: var(--teal-light); border-color: var(--teal); color: var(--teal-dark); }
-  .done-btn.primary { background: var(--teal); color: #fff; border-color: var(--teal); }
-  .done-btn.primary:hover { background: var(--teal-dark); }
+.flip-wrap { display: flex; justify-content: center; margin-bottom: 10px; }
+.flip-btn { font-family: var(--font); font-size: 14px; font-weight: 500; background: var(--card); border: 1.5px solid var(--border); color: var(--muted); padding: 10px 28px; border-radius: 12px; cursor: pointer; }
+.action-row { display: flex; gap: 10px; margin-bottom: 16px; opacity: 0; pointer-events: none; transform: translateY(6px); transition: all 0.2s; }
+.action-row.vis { opacity: 1; pointer-events: all; transform: translateY(0); }
+.act-btn { flex: 1; padding: 13px; border-radius: 14px; font-family: var(--font); font-size: 15px; font-weight: 600; border: none; cursor: pointer; }
+.btn-again { background: var(--coral-l); color: var(--coral-d); }
+.btn-know { background: var(--teal-l); color: var(--teal-d); }
 
-  /* ── Responsive ── */
-  @media (max-width: 520px) {
-    header { flex-direction: column; align-items: flex-start; gap: 12px; }
-    main { padding: 1rem 1rem 2rem; }
-    .card-word { font-size: 1.7rem; }
-    .card-vn { font-size: 1.5rem; }
-    .card-stage { height: 240px; }
-  }
+/* DONE */
+.done-box { text-align: center; padding: 28px 16px; background: var(--card); border-radius: 20px; box-shadow: var(--shadow); }
+.done-box h2 { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+.done-box p { color: var(--muted); margin-bottom: 18px; font-size: 14px; line-height: 1.6; }
+.done-btns { display: flex; flex-direction: column; gap: 8px; }
 
-  /* ── Animations ── */
-  @keyframes pop-in {
-    from { opacity:0; transform: scale(0.96) translateY(10px); }
-    to { opacity:1; transform: scale(1) translateY(0); }
-  }
-  .card-stage { animation: pop-in 0.35s ease both; }
+@keyframes pop { from { opacity:0; transform:scale(0.95) translateY(8px); } to { opacity:1; transform:scale(1) translateY(0); } }
+.card-stage { animation: pop 0.3s ease both; }
 </style>
 </head>
 <body>
 
-<header>
-  <div class="logo-block">
-    <h1>FlashCard<br><em>Hiệu Chuẩn</em></h1>
-    <p>Từ vựng tiếng Anh chuyên ngành đo lường & quan trắc</p>
+<div class="nav">
+  <div class="nav-logo">Flash<span>Card</span> ⚙️</div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showPage('home')">Bộ thẻ</button>
+    <button class="nav-tab" onclick="showPage('manage')" id="manageTab">Quản lý</button>
   </div>
-  <div class="stats-header">
-    <div class="stat-pill stat-know">✓ <span id="hKnow">0</span> biết</div>
-    <div class="stat-pill stat-again">↺ <span id="hAgain">0</span> ôn</div>
+</div>
+
+<!-- HOME PAGE -->
+<div class="page active" id="page-home">
+  <div style="margin-bottom:16px">
+    <div class="sec-title">Chọn bộ thẻ để học</div>
+    <div class="deck-list" id="deckListHome"></div>
   </div>
-</header>
+</div>
 
-<main>
-  <div class="cat-scroll" id="catTabs"></div>
+<!-- MANAGE PAGE -->
+<div class="page" id="page-manage">
+  <div class="sec-title">Bộ thẻ của bạn</div>
+  <div class="deck-list" id="deckListManage"></div>
+  <button class="add-deck-btn" onclick="openAddDeck()">+ Tạo bộ thẻ mới</button>
+</div>
 
-  <div class="progress-wrap">
-    <div class="progress-meta">
-      <span id="progLabel">Thẻ 1 / 20</span>
-      <span id="progPct">0%</span>
-    </div>
-    <div class="progress-track"><div class="progress-fill" id="progFill" style="width:0%"></div></div>
+<!-- STUDY PAGE -->
+<div class="page" id="page-study">
+  <div class="study-header">
+    <button class="back-btn" onclick="goHome()">←</button>
+    <div class="study-title" id="studyTitle"></div>
   </div>
-
-  <div id="mainArea"></div>
-
-  <div class="flip-btn-wrap" id="flipBtnWrap">
-    <button class="flip-btn" onclick="flipCard()">↕ Xem nghĩa tiếng Việt</button>
+  <div class="prog-wrap">
+    <div class="prog-meta"><span id="progLabel">Thẻ 1/1</span><span id="progPct">0%</span></div>
+    <div class="prog-track"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
   </div>
-
+  <div class="score-row">
+    <div class="score-pill" style="background:var(--teal-l);color:var(--teal-d)">✓ <span id="sKnow">0</span> biết</div>
+    <div class="score-pill" style="background:var(--coral-l);color:var(--coral-d)">↺ <span id="sAgain">0</span> ôn</div>
+    <div class="score-pill" style="background:var(--bg);color:var(--muted)"><span id="sLeft">0</span> còn</div>
+  </div>
+  <div id="studyArea"></div>
+  <div class="flip-wrap" id="flipWrap">
+    <button class="flip-btn" onclick="flipCard()">↕ Nhấn để xem nghĩa</button>
+  </div>
   <div class="action-row" id="actionRow">
-    <button class="action-btn btn-again" onclick="markAgain()">↺ Ôn lại</button>
-    <button class="action-btn btn-know" onclick="markKnow()">✓ Đã biết</button>
+    <button class="act-btn btn-again" onclick="markAgain()">↺ Ôn lại</button>
+    <button class="act-btn btn-know" onclick="markKnow()">✓ Đã biết</button>
   </div>
+</div>
 
-  <button class="panel-toggle" onclick="toggleList()">☰ Xem danh sách tất cả từ</button>
-  <div class="word-list-panel" id="wordPanel">
-    <div class="word-list-inner" id="wordListInner"></div>
+<!-- DECK MODAL -->
+<div class="overlay" id="deckModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="deckModalTitle">Tạo bộ thẻ mới</div>
+    <div class="form-group">
+      <label class="form-label">Tên bộ thẻ</label>
+      <input class="form-input" id="deckName" placeholder="VD: Từ vựng y tế, Tiếng Anh IT...">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Biểu tượng</label>
+      <input class="form-input" id="deckEmoji" placeholder="Nhập emoji VD: 🏥 💻 🌿" maxlength="4">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Màu sắc</label>
+      <div class="color-row" id="colorRow"></div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" onclick="closeModal('deckModal')">Huỷ</button>
+      <button class="btn btn-primary" onclick="saveDeck()">Lưu</button>
+    </div>
   </div>
-</main>
+</div>
+
+<!-- WORD MODAL -->
+<div class="overlay" id="wordModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="wordModalTitle">Thêm từ mới</div>
+    <div class="form-group">
+      <label class="form-label">Từ tiếng Anh *</label>
+      <input class="form-input" id="wordEn" placeholder="VD: Calibration">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Phiên âm</label>
+      <input class="form-input" id="wordPh" placeholder="VD: /ˌkælɪˈbreɪʃən/">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Nghĩa tiếng Việt *</label>
+      <input class="form-input" id="wordVn" placeholder="VD: Hiệu chuẩn">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Câu ví dụ</label>
+      <input class="form-input" id="wordEx" placeholder="VD: Annual calibration is required.">
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" onclick="closeModal('wordModal')">Huỷ</button>
+      <button class="btn btn-primary" onclick="saveWord()">Lưu</button>
+    </div>
+  </div>
+</div>
+
+<!-- DECK DETAIL MODAL -->
+<div class="overlay" id="detailModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div class="modal-title" id="detailTitle" style="margin:0"></div>
+      <button class="icon-btn" onclick="openAddWord()">＋</button>
+    </div>
+    <div id="detailWordList"></div>
+    <div class="modal-btns" style="margin-top:10px">
+      <button class="btn btn-danger" onclick="confirmDeleteDeck()">🗑 Xoá bộ thẻ</button>
+      <button class="btn btn-secondary" onclick="closeModal('detailModal')">Đóng</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM MODAL -->
+<div class="overlay" id="confirmModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="confirmTitle">Xác nhận</div>
+    <p id="confirmMsg" style="color:var(--muted);font-size:14px;margin-bottom:18px;line-height:1.6"></p>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" onclick="closeModal('confirmModal')">Huỷ</button>
+      <button class="btn btn-danger" id="confirmOkBtn">Xoá</button>
+    </div>
+  </div>
+</div>
 
 <script>
-const vocab = [
-  { en:"Calibration", ph:"/ˌkælɪˈbreɪʃən/", vn:"Hiệu chuẩn", ex:"The sensor requires annual calibration.", cat:"Hiệu chuẩn", color:"teal" },
-  { en:"Accuracy", ph:"/ˈækjərəsi/", vn:"Độ chính xác", ex:"This device has ±0.1% accuracy.", cat:"Hiệu chuẩn", color:"teal" },
-  { en:"Precision", ph:"/prɪˈsɪʒən/", vn:"Độ tinh xác", ex:"Precision is essential in lab measurements.", cat:"Hiệu chuẩn", color:"teal" },
-  { en:"Uncertainty", ph:"/ʌnˈsɜːtənti/", vn:"Độ không đảm bảo đo", ex:"Report the measurement uncertainty.", cat:"Hiệu chuẩn", color:"teal" },
-  { en:"Traceability", ph:"/ˌtreɪsəˈbɪlɪti/", vn:"Liên kết chuẩn", ex:"Traceability to national standards is required.", cat:"Hiệu chuẩn", color:"teal" },
-  { en:"Tolerance", ph:"/ˈtɒlərəns/", vn:"Dung sai", ex:"The reading is within tolerance.", cat:"Hiệu chuẩn", color:"teal" },
-  { en:"Deviation", ph:"/ˌdiːviˈeɪʃən/", vn:"Độ lệch", ex:"The deviation is 0.05 units.", cat:"Hiệu chuẩn", color:"teal" },
-  { en:"Drift", ph:"/drɪft/", vn:"Độ trôi", ex:"Sensor drift occurs over time.", cat:"Hiệu chuẩn", color:"teal" },
-  { en:"Zero adjustment", ph:"/ˈzɪərəʊ əˈdʒʌstmənt/", vn:"Chỉnh không", ex:"Perform zero adjustment before use.", cat:"Hiệu chuẩn", color:"teal" },
-  { en:"Sensor", ph:"/ˈsɛnsər/", vn:"Cảm biến", ex:"Install the temperature sensor first.", cat:"Thiết bị", color:"purple" },
-  { en:"Probe", ph:"/proʊb/", vn:"Đầu dò", ex:"Insert the probe into the sample.", cat:"Thiết bị", color:"purple" },
-  { en:"Datalogger", ph:"/ˈdeɪtəˌlɒɡər/", vn:"Bộ ghi dữ liệu", ex:"Download data from the datalogger.", cat:"Thiết bị", color:"purple" },
-  { en:"Transducer", ph:"/trænsˈdjuːsər/", vn:"Bộ chuyển đổi tín hiệu", ex:"The transducer converts pressure to voltage.", cat:"Thiết bị", color:"purple" },
-  { en:"Reference standard", ph:"/ˈrɛfrəns ˈstændərd/", vn:"Chuẩn tham chiếu", ex:"Use the reference standard to verify.", cat:"Thiết bị", color:"purple" },
-  { en:"Monitoring station", ph:"/ˈmɒnɪtərɪŋ ˈsteɪʃən/", vn:"Trạm quan trắc", ex:"The monitoring station records hourly data.", cat:"Quan trắc", color:"blue" },
-  { en:"Humidity", ph:"/hjuːˈmɪdɪti/", vn:"Độ ẩm", ex:"Humidity is measured in percent.", cat:"Quan trắc", color:"blue" },
-  { en:"Barometric pressure", ph:"/ˌbærəˈmɛtrɪk ˈprɛʃər/", vn:"Áp suất khí quyển", ex:"Barometric pressure dropped before the storm.", cat:"Quan trắc", color:"blue" },
-  { en:"Precipitation", ph:"/prɪˌsɪpɪˈteɪʃən/", vn:"Lượng mưa", ex:"Record daily precipitation levels.", cat:"Quan trắc", color:"blue" },
-  { en:"Calibration certificate", ph:"/ˌkælɪˈbreɪʃən səˈtɪfɪkɪt/", vn:"Giấy chứng nhận hiệu chuẩn", ex:"Keep the calibration certificate on file.", cat:"Tài liệu", color:"amber" },
-  { en:"Standard operating procedure", ph:"/ˈstændərd ˈɒpəreɪtɪŋ prəˈsiːdʒər/", vn:"Quy trình chuẩn (SOP)", ex:"Follow the standard operating procedure.", cat:"Tài liệu", color:"amber" },
+const COLORS = [
+  { name:"teal",   bg:"#1D9E75", light:"#E1F5EE", dark:"#085041" },
+  { name:"purple", bg:"#7F77DD", light:"#EEEDFE", dark:"#3C3489" },
+  { name:"blue",   bg:"#378ADD", light:"#E6F1FB", dark:"#0C447C" },
+  { name:"amber",  bg:"#BA7517", light:"#FAEEDA", dark:"#633806" },
+  { name:"coral",  bg:"#D85A30", light:"#FAECE7", dark:"#993C1D" },
+  { name:"pink",   bg:"#D4537E", light:"#FBEAF0", dark:"#72243E" },
+  { name:"green",  bg:"#639922", light:"#EAF3DE", dark:"#3B6D11" },
 ];
 
-const colors = {
-  teal:   { bg:"#E1F5EE", text:"#085041", badge:"#9FE1CB", badgeText:"#04342C" },
-  purple: { bg:"#EEEDFE", text:"#26215C", badge:"#CECBF6", badgeText:"#3C3489" },
-  blue:   { bg:"#E6F1FB", text:"#042C53", badge:"#B5D4F4", badgeText:"#0C447C" },
-  amber:  { bg:"#FAEEDA", text:"#412402", badge:"#FAC775", badgeText:"#633806" },
-};
-const cats = ["Tất cả","Hiệu chuẩn","Thiết bị","Quan trắc","Tài liệu"];
+// DATA
+function loadData() {
+  try { return JSON.parse(localStorage.getItem("fcData")) || { decks:[], words:{} }; }
+  catch(e) { return { decks:[], words:{} }; }
+}
+function saveData(d) { localStorage.setItem("fcData", JSON.stringify(d)); }
 
-let activeCat = "Tất cả";
-let queue = [], currentIdx = 0, flipped = false;
+// Seed default deck
+function seedDefault() {
+  const d = loadData();
+  if (d.decks.length === 0) {
+    const id = "deck_default";
+    d.decks.push({ id, name:"Hiệu Chuẩn & Quan Trắc", emoji:"⚙️", color:"teal" });
+    d.words[id] = [
+      { id:"w1", en:"Calibration",   ph:"/ˌkælɪˈbreɪʃən/",  vn:"Hiệu chuẩn",           ex:"Annual calibration is required." },
+      { id:"w2", en:"Accuracy",      ph:"/ˈækjərəsi/",       vn:"Độ chính xác",          ex:"This device has ±0.1% accuracy." },
+      { id:"w3", en:"Uncertainty",   ph:"/ʌnˈsɜːtənti/",    vn:"Độ không đảm bảo đo",  ex:"Report the measurement uncertainty." },
+      { id:"w4", en:"Traceability",  ph:"/ˌtreɪsəˈbɪlɪti/", vn:"Liên kết chuẩn",       ex:"Traceability to national standards is required." },
+      { id:"w5", en:"Tolerance",     ph:"/ˈtɒlərəns/",       vn:"Dung sai",              ex:"The reading is within tolerance." },
+      { id:"w6", en:"Drift",         ph:"/drɪft/",           vn:"Độ trôi",               ex:"Sensor drift occurs over time." },
+      { id:"w7", en:"Sensor",        ph:"/ˈsɛnsər/",         vn:"Cảm biến",              ex:"Install the temperature sensor first." },
+      { id:"w8", en:"Humidity",      ph:"/hjuːˈmɪdɪti/",    vn:"Độ ẩm",                 ex:"Humidity is measured in percent." },
+    ];
+    saveData(d);
+  }
+}
+
+// STATE
+let currentPage = "home";
+let editingDeckId = null;
+let selectedColor = "teal";
+let activeDeckId = null;
+let editingWordId = null;
+let studyQueue = [], studyIdx = 0, flipped = false;
 let knowSet = new Set(), againSet = new Set();
-let listOpen = false;
 
-function getQueue() {
-  return activeCat === "Tất cả" ? [...vocab] : vocab.filter(v=>v.cat===activeCat);
+// PAGES
+function showPage(p) {
+  document.querySelectorAll(".page").forEach(el => el.classList.remove("active"));
+  document.querySelectorAll(".nav-tab").forEach(el => el.classList.remove("active"));
+  document.getElementById("page-" + p).classList.add("active");
+  const tabs = document.querySelectorAll(".nav-tab");
+  if (p === "home") tabs[0].classList.add("active");
+  if (p === "manage") tabs[1].classList.add("active");
+  currentPage = p;
+  if (p === "home") renderHome();
+  if (p === "manage") renderManage();
 }
-function shuffle(a){ for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a; }
+function goHome() { showPage("home"); }
 
-function initQueue() {
-  queue = shuffle(getQueue());
-  currentIdx = 0; flipped = false;
+// RENDER HOME
+function renderHome() {
+  const d = loadData();
+  const el = document.getElementById("deckListHome");
+  if (d.decks.length === 0) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">📚</div><p>Chưa có bộ thẻ nào.<br>Vào tab <strong>Quản lý</strong> để tạo nhé!</p></div>`;
+    return;
+  }
+  el.innerHTML = d.decks.map(deck => {
+    const words = d.words[deck.id] || [];
+    const c = COLORS.find(c => c.name === deck.color) || COLORS[0];
+    return `<div class="deck-card" onclick="startStudy('${deck.id}')">
+      <div class="deck-icon" style="background:${c.light}">${deck.emoji}</div>
+      <div class="deck-info">
+        <div class="deck-name">${deck.name}</div>
+        <div class="deck-meta">${words.length} từ vựng</div>
+      </div>
+      <div class="deck-arrow">›</div>
+    </div>`;
+  }).join("");
+}
+
+// RENDER MANAGE
+function renderManage() {
+  const d = loadData();
+  const el = document.getElementById("deckListManage");
+  if (d.decks.length === 0) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">📂</div><p>Chưa có bộ thẻ nào</p></div>`;
+    return;
+  }
+  el.innerHTML = d.decks.map(deck => {
+    const words = d.words[deck.id] || [];
+    const c = COLORS.find(c => c.name === deck.color) || COLORS[0];
+    return `<div class="deck-card" onclick="openDeckDetail('${deck.id}')">
+      <div class="deck-icon" style="background:${c.light}">${deck.emoji}</div>
+      <div class="deck-info">
+        <div class="deck-name">${deck.name}</div>
+        <div class="deck-meta">${words.length} từ</div>
+      </div>
+      <div class="deck-actions">
+        <button class="icon-btn" onclick="event.stopPropagation();openEditDeck('${deck.id}')">✏️</button>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+// DECK MODAL
+function buildColorRow(selected) {
+  const el = document.getElementById("colorRow");
+  el.innerHTML = COLORS.map(c =>
+    `<div class="color-dot${c.name===selected?' selected':''}" style="background:${c.bg}" onclick="selectColor('${c.name}')"></div>`
+  ).join("");
+}
+function selectColor(name) {
+  selectedColor = name;
+  buildColorRow(name);
+}
+function openAddDeck() {
+  editingDeckId = null; selectedColor = "teal";
+  document.getElementById("deckModalTitle").textContent = "Tạo bộ thẻ mới";
+  document.getElementById("deckName").value = "";
+  document.getElementById("deckEmoji").value = "";
+  buildColorRow("teal");
+  openModal("deckModal");
+}
+function openEditDeck(id) {
+  const d = loadData();
+  const deck = d.decks.find(dk => dk.id === id);
+  if (!deck) return;
+  editingDeckId = id; selectedColor = deck.color;
+  document.getElementById("deckModalTitle").textContent = "Chỉnh sửa bộ thẻ";
+  document.getElementById("deckName").value = deck.name;
+  document.getElementById("deckEmoji").value = deck.emoji;
+  buildColorRow(deck.color);
+  openModal("deckModal");
+}
+function saveDeck() {
+  const name = document.getElementById("deckName").value.trim();
+  const emoji = document.getElementById("deckEmoji").value.trim() || "📚";
+  if (!name) { alert("Vui lòng nhập tên bộ thẻ!"); return; }
+  const d = loadData();
+  if (editingDeckId) {
+    const deck = d.decks.find(dk => dk.id === editingDeckId);
+    if (deck) { deck.name = name; deck.emoji = emoji; deck.color = selectedColor; }
+  } else {
+    const id = "deck_" + Date.now();
+    d.decks.push({ id, name, emoji, color: selectedColor });
+    d.words[id] = [];
+  }
+  saveData(d); closeModal("deckModal"); renderManage();
+}
+
+// DECK DETAIL
+function openDeckDetail(id) {
+  activeDeckId = id;
+  const d = loadData();
+  const deck = d.decks.find(dk => dk.id === id);
+  if (!deck) return;
+  const words = d.words[id] || [];
+  document.getElementById("detailTitle").textContent = deck.emoji + " " + deck.name;
+  renderDetailWords(id);
+  openModal("detailModal");
+}
+function renderDetailWords(id) {
+  const d = loadData();
+  const words = d.words[id] || [];
+  const c = COLORS.find(c => c.name === (d.decks.find(dk=>dk.id===id)||{}).color) || COLORS[0];
+  const el = document.getElementById("detailWordList");
+  if (words.length === 0) {
+    el.innerHTML = `<div class="empty-state" style="padding:16px"><div class="empty-icon">📝</div><p>Chưa có từ nào.<br>Nhấn + để thêm từ mới!</p></div>`;
+    return;
+  }
+  el.innerHTML = `<div class="word-list">${words.map(w =>
+    `<div class="word-item">
+      <div class="word-item-info">
+        <div class="word-item-en">${w.en}</div>
+        <div class="word-item-vn">${w.vn}${w.ph ? ' · ' + w.ph : ''}</div>
+      </div>
+      <div style="display:flex;gap:6px">
+        <button class="icon-btn" onclick="openEditWord('${id}','${w.id}')">✏️</button>
+        <button class="icon-btn" onclick="deleteWord('${id}','${w.id}')">🗑</button>
+      </div>
+    </div>`
+  ).join("")}</div>`;
+}
+
+// WORD MODAL
+function openAddWord() {
+  editingWordId = null;
+  document.getElementById("wordModalTitle").textContent = "Thêm từ mới";
+  document.getElementById("wordEn").value = "";
+  document.getElementById("wordPh").value = "";
+  document.getElementById("wordVn").value = "";
+  document.getElementById("wordEx").value = "";
+  openModal("wordModal");
+}
+function openEditWord(deckId, wordId) {
+  const d = loadData();
+  const words = d.words[deckId] || [];
+  const w = words.find(w => w.id === wordId);
+  if (!w) return;
+  editingWordId = wordId;
+  document.getElementById("wordModalTitle").textContent = "Chỉnh sửa từ";
+  document.getElementById("wordEn").value = w.en;
+  document.getElementById("wordPh").value = w.ph || "";
+  document.getElementById("wordVn").value = w.vn;
+  document.getElementById("wordEx").value = w.ex || "";
+  openModal("wordModal");
+}
+function saveWord() {
+  const en = document.getElementById("wordEn").value.trim();
+  const ph = document.getElementById("wordPh").value.trim();
+  const vn = document.getElementById("wordVn").value.trim();
+  const ex = document.getElementById("wordEx").value.trim();
+  if (!en || !vn) { alert("Vui lòng nhập từ tiếng Anh và nghĩa tiếng Việt!"); return; }
+  const d = loadData();
+  if (!d.words[activeDeckId]) d.words[activeDeckId] = [];
+  if (editingWordId) {
+    const w = d.words[activeDeckId].find(w => w.id === editingWordId);
+    if (w) { w.en = en; w.ph = ph; w.vn = vn; w.ex = ex; }
+  } else {
+    d.words[activeDeckId].push({ id:"w_"+Date.now(), en, ph, vn, ex });
+  }
+  saveData(d); closeModal("wordModal"); renderDetailWords(activeDeckId);
+}
+function deleteWord(deckId, wordId) {
+  const d = loadData();
+  d.words[deckId] = (d.words[deckId]||[]).filter(w => w.id !== wordId);
+  saveData(d); renderDetailWords(deckId);
+}
+
+// DELETE DECK
+function confirmDeleteDeck() {
+  document.getElementById("confirmTitle").textContent = "Xoá bộ thẻ?";
+  document.getElementById("confirmMsg").textContent = "Tất cả từ vựng trong bộ thẻ này sẽ bị xoá. Không thể khôi phục!";
+  document.getElementById("confirmOkBtn").onclick = () => {
+    const d = loadData();
+    d.decks = d.decks.filter(dk => dk.id !== activeDeckId);
+    delete d.words[activeDeckId];
+    saveData(d); closeModal("confirmModal"); closeModal("detailModal"); renderManage();
+  };
+  openModal("confirmModal");
+}
+
+// MODAL HELPERS
+function openModal(id) { document.getElementById(id).classList.add("open"); }
+function closeModal(id) { document.getElementById(id).classList.remove("open"); }
+document.querySelectorAll(".overlay").forEach(o => {
+  o.addEventListener("click", e => { if (e.target === o) o.classList.remove("open"); });
+});
+
+// STUDY
+function shuffle(a) { for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]; } return a; }
+
+function startStudy(deckId) {
+  const d = loadData();
+  const deck = d.decks.find(dk => dk.id === deckId);
+  const words = d.words[deckId] || [];
+  if (words.length === 0) { alert("Bộ thẻ này chưa có từ nào! Vào Quản lý để thêm từ nhé."); return; }
+  activeDeckId = deckId;
+  studyQueue = shuffle([...words]);
+  studyIdx = 0; flipped = false;
   knowSet.clear(); againSet.clear();
-  updateUI(); renderCard(); renderWordList();
+  const c = COLORS.find(c => c.name === deck.color) || COLORS[0];
+  document.getElementById("progFill").style.background = c.bg;
+  document.getElementById("studyTitle").textContent = deck.emoji + " " + deck.name;
+  showPage("study");
+  updateStudyUI(); renderStudyCard();
 }
 
-function updateUI() {
-  document.getElementById("hKnow").textContent = knowSet.size;
-  document.getElementById("hAgain").textContent = againSet.size;
-  const total = queue.length;
-  const done = currentIdx;
+function updateStudyUI() {
+  const total = studyQueue.length, done = studyIdx;
   const pct = total ? Math.round((done/total)*100) : 0;
   document.getElementById("progLabel").textContent = `Thẻ ${Math.min(done+1,total)} / ${total}`;
   document.getElementById("progPct").textContent = pct + "%";
   document.getElementById("progFill").style.width = pct + "%";
-  renderWordList();
+  document.getElementById("sKnow").textContent = knowSet.size;
+  document.getElementById("sAgain").textContent = againSet.size;
+  document.getElementById("sLeft").textContent = Math.max(0, total - done);
 }
 
-function renderCard() {
-  const area = document.getElementById("mainArea");
-  const flipWrap = document.getElementById("flipBtnWrap");
-  const actionRow = document.getElementById("actionRow");
-
-  if(currentIdx >= queue.length) {
-    flipWrap.style.display = "none";
-    actionRow.classList.remove("visible");
-    area.innerHTML = `<div class="done-screen">
-      <div class="done-icon">🎉</div>
-      <h2>Bạn đã hoàn thành!</h2>
-      <p>Biết ngay: <strong>${knowSet.size}</strong> từ &nbsp;·&nbsp; Cần ôn thêm: <strong>${againSet.size}</strong> từ</p>
-      ${againSet.size>0 ? `<button class="done-btn" onclick="reviewAgain()">↺ Ôn lại ${againSet.size} từ chưa nhớ</button>` : ""}
-      <button class="done-btn primary" onclick="initQueue()">▶ Bắt đầu lại từ đầu</button>
+function renderStudyCard() {
+  const area = document.getElementById("studyArea");
+  const flipW = document.getElementById("flipWrap");
+  const actRow = document.getElementById("actionRow");
+  if (studyIdx >= studyQueue.length) {
+    flipW.style.display = "none"; actRow.classList.remove("vis");
+    const d = loadData();
+    const deck = d.decks.find(dk => dk.id === activeDeckId) || {};
+    area.innerHTML = `<div class="done-box">
+      <div style="font-size:48px;margin-bottom:12px">🎉</div>
+      <h2>Hoàn thành!</h2>
+      <p>Đã biết: <strong>${knowSet.size}</strong> từ &nbsp;·&nbsp; Cần ôn: <strong>${againSet.size}</strong> từ</p>
+      <div class="done-btns">
+        ${againSet.size>0?`<button class="btn btn-danger" onclick="reviewAgain()">↺ Ôn lại ${againSet.size} từ chưa nhớ</button>`:""}
+        <button class="btn btn-primary" onclick="startStudy('${activeDeckId}')">▶ Học lại từ đầu</button>
+        <button class="btn btn-secondary" onclick="goHome()">← Về trang chủ</button>
+      </div>
     </div>`;
     return;
   }
-
-  const w = queue[currentIdx];
-  const c = colors[w.color];
+  const w = studyQueue[studyIdx];
+  const d = loadData();
+  const deck = d.decks.find(dk => dk.id === activeDeckId) || {};
+  const c = COLORS.find(c => c.name === deck.color) || COLORS[0];
   flipped = false;
-  flipWrap.style.display = "flex";
-  actionRow.classList.remove("visible");
-
+  flipW.style.display = "flex"; flipW.style.opacity = "1";
+  actRow.classList.remove("vis");
   area.innerHTML = `<div class="card-stage" onclick="flipCard()">
     <div class="card-inner" id="cardInner">
       <div class="card-face card-front">
-        <span class="card-cat-badge" style="background:${c.badge};color:${c.badgeText}">${w.cat}</span>
-        <span class="card-num">${currentIdx+1} / ${queue.length}</span>
+        <span class="card-badge" style="background:${c.light};color:${c.dark}">${deck.emoji} ${deck.name}</span>
+        <span class="card-num">${studyIdx+1}/${studyQueue.length}</span>
         <div class="card-word">${w.en}</div>
-        <div class="card-phonetic">${w.ph}</div>
-        <div class="card-flip-hint">↕ nhấn để lật</div>
+        <div class="card-ph">${w.ph||""}</div>
+        <div class="card-hint">chạm để lật ↕</div>
       </div>
-      <div class="card-face card-back" style="background:${c.bg}">
-        <span class="card-cat-badge" style="background:${c.badge};color:${c.badgeText}">${w.cat}</span>
-        <span class="card-num">${currentIdx+1} / ${queue.length}</span>
-        <div class="card-vn" style="color:${c.text}">${w.vn}</div>
-        <div class="card-ex" style="color:${c.text}">"${w.ex}"</div>
-        <div class="card-flip-hint">↕ nhấn để lật lại</div>
+      <div class="card-face card-back" style="background:${c.light}">
+        <span class="card-badge" style="background:${c.bg};color:#fff">${deck.emoji} ${deck.name}</span>
+        <span class="card-num">${studyIdx+1}/${studyQueue.length}</span>
+        <div class="card-vn" style="color:${c.dark}">${w.vn}</div>
+        ${w.ex?`<div class="card-ex" style="color:${c.dark}">"${w.ex}"</div>`:""}
+        <div class="card-hint">chạm để lật lại ↕</div>
       </div>
     </div>
   </div>`;
 }
 
 function flipCard() {
-  if(currentIdx >= queue.length) return;
+  if (studyIdx >= studyQueue.length) return;
   flipped = !flipped;
   const ci = document.getElementById("cardInner");
-  if(!ci) return;
+  if (!ci) return;
   ci.classList.toggle("flipped", flipped);
   const ar = document.getElementById("actionRow");
-  const fw = document.getElementById("flipBtnWrap");
-  if(flipped){ ar.classList.add("visible"); fw.style.opacity="0"; }
-  else { ar.classList.remove("visible"); fw.style.opacity="1"; }
+  const fw = document.getElementById("flipWrap");
+  if (flipped) { ar.classList.add("vis"); fw.style.opacity="0"; }
+  else { ar.classList.remove("vis"); fw.style.opacity="1"; }
+}
+function markKnow()  { knowSet.add(studyQueue[studyIdx].id);  studyIdx++; updateStudyUI(); renderStudyCard(); }
+function markAgain() { againSet.add(studyQueue[studyIdx].id); studyIdx++; updateStudyUI(); renderStudyCard(); }
+function reviewAgain() {
+  const d = loadData();
+  const allWords = d.words[activeDeckId] || [];
+  studyQueue = shuffle(allWords.filter(w => againSet.has(w.id)));
+  studyIdx=0; flipped=false; knowSet.clear(); againSet.clear();
+  updateStudyUI(); renderStudyCard();
 }
 
-function markKnow(){ knowSet.add(queue[currentIdx].en); currentIdx++; updateUI(); renderCard(); }
-function markAgain(){ againSet.add(queue[currentIdx].en); currentIdx++; updateUI(); renderCard(); }
-function reviewAgain(){
-  queue = shuffle(vocab.filter(v=>againSet.has(v.en)));
-  currentIdx=0; flipped=false; knowSet.clear(); againSet.clear();
-  updateUI(); renderCard();
-}
-
-function buildCatTabs() {
-  const el = document.getElementById("catTabs");
-  el.innerHTML = cats.map(c=>`<button class="cat-btn${c===activeCat?' active':''}" onclick="selectCat('${c}')">${c}</button>`).join("");
-}
-function selectCat(c){ activeCat=c; buildCatTabs(); initQueue(); }
-
-function renderWordList() {
-  const container = document.getElementById("wordListInner");
-  const list = getQueue();
-  container.innerHTML = list.map(w=>{
-    const known = knowSet.has(w.en);
-    const again = againSet.has(w.en);
-    return `<div class="word-row">
-      <span class="word-dot${known?' known':again?' again':''}"></span>
-      <span class="word-en">${w.en}</span>
-      <span class="word-vn">${w.vn}</span>
-    </div>`;
-  }).join("");
-}
-
-function toggleList() {
-  listOpen = !listOpen;
-  document.getElementById("wordPanel").classList.toggle("open", listOpen);
-}
-
-// keyboard shortcuts
-document.addEventListener("keydown", e=>{
-  if(e.code==="Space"){ e.preventDefault(); flipCard(); }
-  if(e.code==="ArrowRight" && flipped) markKnow();
-  if(e.code==="ArrowLeft" && flipped) markAgain();
+// KEYBOARD
+document.addEventListener("keydown", e => {
+  if (currentPage !== "study") return;
+  if (e.code==="Space") { e.preventDefault(); flipCard(); }
+  if (e.code==="ArrowRight" && flipped) markKnow();
+  if (e.code==="ArrowLeft"  && flipped) markAgain();
 });
 
-buildCatTabs();
-initQueue();
+// INIT
+seedDefault();
+renderHome();
 </script>
 </body>
 </html>
