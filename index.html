@@ -636,13 +636,21 @@ async function renderHome() {
   el.innerHTML = d.decks.map(deck => {
     const words = d.words[deck.id] || [];
     const c = COLORS.find(c => c.name === deck.color) || COLORS[0];
+    const prog = d.progress && d.progress[deck.id];
+    const knowCount = prog ? (prog.knowIds || []).length : 0;
+    const total = words.length;
+    const pct = total ? Math.round(knowCount/total*100) : 0;
+    const badge = knowCount > 0
+      ? `<div style="font-size:11px;font-weight:700;color:${c.dark};background:${c.light};padding:3px 8px;border-radius:20px;white-space:nowrap">${knowCount}/${total} ✓</div>`
+      : "";
     return `<div class="deck-card" onclick="startStudy('${deck.id}')">
       <div class="deck-icon" style="background:${c.light}">${deck.emoji}</div>
       <div class="deck-info">
         <div class="deck-name">${deck.name}</div>
-        <div class="deck-meta">${words.length} từ vựng</div>
+        <div class="deck-meta">${total} từ vựng${knowCount>0?" · "+pct+"% đã biết":""}</div>
+        ${knowCount>0?`<div style="height:4px;background:rgba(0,0,0,0.07);border-radius:10px;margin-top:5px"><div style="height:100%;width:${pct}%;background:${c.bg};border-radius:10px;transition:width 0.4s"></div></div>`:""}
       </div>
-      <div class="deck-arrow">›</div>
+      ${badge}
     </div>`;
   }).join("");
   // Show install banner if not dismissed
@@ -824,13 +832,56 @@ async function startStudy(deckId) {
   const words = d.words[deckId] || [];
   if (words.length === 0) { alert("Bộ thẻ này chưa có từ nào! Vào Quản lý để thêm từ nhé."); return; }
   activeDeckId = deckId;
-  studyQueue = shuffle([...words]);
+
+  // Load saved progress
+  const prog = d.progress && d.progress[deckId];
+  if (prog && prog.knowIds && prog.knowIds.length > 0) {
+    const resume = confirm(`Bạn đã học ${prog.knowIds.length} từ lần trước.\n\nTiếp tục từ chỗ đã học, hay học lại từ đầu?`);
+    if (resume) {
+      // Only study words not yet known
+      const remaining = words.filter(w => !prog.knowIds.includes(w.id));
+      if (remaining.length === 0) {
+        if (confirm("Bạn đã biết hết tất cả từ trong bộ này! 🎉\nHọc lại từ đầu không?")) {
+          clearProgress(deckId); studyQueue = shuffle([...words]);
+        } else return;
+      } else {
+        studyQueue = shuffle(remaining);
+        knowSet = new Set(prog.knowIds);
+        againSet = new Set(prog.againIds || []);
+      }
+    } else {
+      clearProgress(deckId);
+      studyQueue = shuffle([...words]);
+      knowSet.clear(); againSet.clear();
+    }
+  } else {
+    studyQueue = shuffle([...words]);
+    knowSet.clear(); againSet.clear();
+  }
+
   studyIdx = 0; flipped = false;
-  knowSet.clear(); againSet.clear();
   const c = COLORS.find(c => c.name === deck.color) || COLORS[0];
   document.getElementById("progFill").style.background = c.bg;
   document.getElementById("studyTitle").textContent = deck.emoji+" "+deck.name;
   showPage("study"); updateStudyUI(); renderStudyCard();
+}
+
+async function saveProgress() {
+  const d = await loadData();
+  if (!d.progress) d.progress = {};
+  d.progress[activeDeckId] = {
+    knowIds: [...knowSet],
+    againIds: [...againSet],
+    savedAt: new Date().toISOString()
+  };
+  await saveData(d);
+}
+
+async function clearProgress(deckId) {
+  const d = await loadData();
+  if (d.progress) delete d.progress[deckId];
+  await saveData(d);
+  knowSet.clear(); againSet.clear();
 }
 function updateStudyUI() {
   const total = studyQueue.length, done = studyIdx;
@@ -848,6 +899,12 @@ async function renderStudyCard() {
   const actRow = document.getElementById("actionRow");
   if (studyIdx >= studyQueue.length) {
     flipW.style.display = "none"; actRow.classList.remove("vis");
+    // If all words known, clear progress
+    const d2 = await loadData();
+    const allWords = d2.words[activeDeckId] || [];
+    const allDone = allWords.every(w => knowSet.has(w.id));
+    if (allDone) clearProgress(activeDeckId);
+    else saveProgress();
     area.innerHTML = `<div class="done-box">
       <div style="font-size:52px;margin-bottom:12px">🎉</div>
       <h2>Hoàn thành!</h2>
@@ -898,8 +955,8 @@ function flipCard() {
   if (flipped) { ar.classList.add("vis"); fw.style.opacity="0"; }
   else { ar.classList.remove("vis"); fw.style.opacity="1"; }
 }
-function markKnow()  { knowSet.add(studyQueue[studyIdx].id);  studyIdx++; updateStudyUI(); renderStudyCard(); }
-function markAgain() { againSet.add(studyQueue[studyIdx].id); studyIdx++; updateStudyUI(); renderStudyCard(); }
+function markKnow()  { knowSet.add(studyQueue[studyIdx].id);  studyIdx++; updateStudyUI(); renderStudyCard(); saveProgress(); }
+function markAgain() { againSet.add(studyQueue[studyIdx].id); studyIdx++; updateStudyUI(); renderStudyCard(); saveProgress(); }
 async function reviewAgain() {
   const d = await loadData();
   const allWords = d.words[activeDeckId] || [];
