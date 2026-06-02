@@ -1,0 +1,1426 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="FlashCard">
+<meta name="theme-color" content="#1D9E75">
+<title>FlashCard – Học Từ Vựng</title>
+
+<!-- PWA Icon inline SVG as data URI -->
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%231D9E75'/%3E%3Ctext y='.9em' font-size='72' x='12'%3E📚%3C/text%3E%3C/svg%3E">
+
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --bg: #F2F0EC; --card: #FFFFFF; --text: #1C1C1E; --muted: #6B6B6B;
+  --border: rgba(0,0,0,0.09);
+  --teal: #1D9E75; --teal-l: #E1F5EE; --teal-d: #085041;
+  --purple: #7F77DD; --purple-l: #EEEDFE; --purple-d: #3C3489;
+  --blue: #378ADD; --blue-l: #E6F1FB; --blue-d: #0C447C;
+  --amber: #BA7517; --amber-l: #FAEEDA; --amber-d: #633806;
+  --coral: #D85A30; --coral-l: #FAECE7; --coral-d: #993C1D;
+  --pink: #D4537E; --pink-l: #FBEAF0; --pink-d: #72243E;
+  --green: #639922; --green-l: #EAF3DE; --green-d: #3B6D11;
+  --r: 16px;
+  --font: 'Nunito', -apple-system, BlinkMacSystemFont, sans-serif;
+  --shadow: 0 2px 16px rgba(0,0,0,0.08);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body {
+  font-family: var(--font); background: var(--bg); color: var(--text);
+  min-height: 100vh; min-height: -webkit-fill-available;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* NAV */
+.nav {
+  background: var(--card); border-bottom: 1px solid var(--border);
+  padding: 12px 16px;
+  padding-top: calc(12px + env(safe-area-inset-top, 0px));
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 100;
+}
+.nav-logo { font-size: 17px; font-weight: 800; }
+.nav-logo span { color: var(--teal); }
+.nav-tabs { display: flex; gap: 4px; }
+.nav-tab {
+  font-family: var(--font); font-size: 13px; font-weight: 700;
+  padding: 6px 14px; border-radius: 20px; border: 1.5px solid var(--border);
+  background: transparent; color: var(--muted); cursor: pointer;
+}
+.nav-tab.active { background: var(--teal); border-color: var(--teal); color: #fff; }
+
+/* PAGE */
+.page { display: none; padding: 16px; max-width: 640px; margin: 0 auto; }
+.page.active { display: block; }
+.sec-title { font-size: 13px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 10px; }
+
+/* INSTALL BANNER */
+.install-banner {
+  background: linear-gradient(135deg, #1D9E75, #378ADD);
+  border-radius: 16px; padding: 14px 16px; margin-bottom: 16px;
+  display: flex; align-items: center; gap: 12px; color: #fff;
+}
+.install-banner-icon { font-size: 28px; flex-shrink: 0; }
+.install-banner-text { flex: 1; }
+.install-banner-text strong { font-size: 14px; font-weight: 800; display: block; }
+.install-banner-text small { font-size: 12px; opacity: 0.85; line-height: 1.4; }
+.install-close {
+  background: rgba(255,255,255,0.2); border: none; color: #fff;
+  width: 28px; height: 28px; border-radius: 50%; cursor: pointer;
+  font-size: 14px; flex-shrink: 0; font-family: var(--font);
+}
+
+/* DECK LIST */
+.deck-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+.deck-card {
+  background: var(--card); border-radius: var(--r); border: 1px solid var(--border);
+  padding: 14px 16px; display: flex; align-items: center; gap: 12px; cursor: pointer;
+  box-shadow: var(--shadow); transition: transform 0.15s;
+}
+.deck-card:active { transform: scale(0.98); }
+.deck-icon {
+  width: 48px; height: 48px; border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px; flex-shrink: 0;
+}
+.deck-info { flex: 1; min-width: 0; }
+.deck-name { font-size: 15px; font-weight: 700; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.deck-meta { font-size: 12px; color: var(--muted); }
+.deck-arrow { color: var(--muted); font-size: 20px; }
+.deck-actions { display: flex; gap: 6px; }
+.icon-btn {
+  width: 34px; height: 34px; border-radius: 9px; border: 1px solid var(--border);
+  background: var(--bg); cursor: pointer; font-size: 15px;
+  display: flex; align-items: center; justify-content: center; font-family: var(--font);
+}
+
+/* ADD DECK BTN */
+.add-deck-btn {
+  width: 100%; padding: 14px; border-radius: var(--r);
+  border: 2px dashed var(--border); background: transparent;
+  font-family: var(--font); font-size: 14px; font-weight: 700;
+  color: var(--muted); cursor: pointer; transition: all 0.15s;
+}
+.add-deck-btn:hover { border-color: var(--teal); color: var(--teal); }
+
+/* MODAL */
+.overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.45); z-index: 200;
+  align-items: flex-end; justify-content: center;
+}
+.overlay.open { display: flex; }
+.modal {
+  background: var(--card); border-radius: 24px 24px 0 0;
+  padding: 20px 20px calc(20px + env(safe-area-inset-bottom, 0px));
+  width: 100%; max-width: 640px; max-height: 92vh; overflow-y: auto;
+}
+.modal-handle { width: 36px; height: 4px; background: var(--border); border-radius: 4px; margin: 0 auto 16px; }
+.modal-title { font-size: 17px; font-weight: 800; margin-bottom: 16px; }
+.form-group { margin-bottom: 14px; }
+.form-label { font-size: 13px; font-weight: 700; color: var(--muted); margin-bottom: 6px; display: block; }
+.form-input {
+  width: 100%; padding: 12px 14px; border-radius: 12px;
+  border: 1.5px solid var(--border); background: var(--bg);
+  font-family: var(--font); font-size: 15px; color: var(--text);
+  outline: none; transition: border-color 0.15s;
+}
+.form-input:focus { border-color: var(--teal); }
+.color-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.color-dot {
+  width: 34px; height: 34px; border-radius: 50%; cursor: pointer;
+  border: 3px solid transparent; transition: transform 0.15s;
+}
+.color-dot.selected { border-color: var(--text); transform: scale(1.15); }
+.modal-btns { display: flex; gap: 10px; margin-top: 8px; }
+.btn {
+  flex: 1; padding: 14px; border-radius: 14px; font-family: var(--font);
+  font-size: 15px; font-weight: 700; cursor: pointer; border: none;
+  transition: opacity 0.15s;
+}
+.btn:active { opacity: 0.75; }
+.btn-primary { background: var(--teal); color: #fff; }
+.btn-secondary { background: var(--bg); color: var(--muted); border: 1.5px solid var(--border); }
+.btn-danger { background: var(--coral-l); color: var(--coral-d); }
+
+/* IMAGE UPLOAD */
+.img-upload-area {
+  border: 2px dashed var(--border); border-radius: 12px; padding: 16px;
+  text-align: center; cursor: pointer; transition: all 0.15s; position: relative; overflow: hidden;
+}
+.img-upload-area:hover, .img-upload-area:active { border-color: var(--teal); background: var(--teal-l); }
+.img-preview {
+  width: 100%; max-height: 180px; object-fit: cover;
+  border-radius: 8px; display: none;
+}
+.img-upload-hint { font-size: 13px; color: var(--muted); font-weight: 600; }
+.img-upload-hint span { font-size: 28px; display: block; margin-bottom: 6px; }
+.img-clear-btn {
+  position: absolute; top: 8px; right: 8px; width: 28px; height: 28px;
+  background: rgba(0,0,0,0.55); color: #fff; border: none; border-radius: 50%;
+  cursor: pointer; font-size: 14px; display: none; align-items: center; justify-content: center;
+  z-index: 2;
+}
+#imgFile { display: none; }
+
+/* WORD LIST */
+.word-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+.word-item {
+  background: var(--card); border-radius: 12px; border: 1px solid var(--border);
+  padding: 10px 14px; display: flex; align-items: center; gap: 10px;
+}
+.word-item-thumb {
+  width: 46px; height: 46px; border-radius: 10px; flex-shrink: 0;
+  background: var(--bg); display: flex; align-items: center;
+  justify-content: center; font-size: 22px; overflow: hidden;
+}
+.word-item-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.word-item-info { flex: 1; min-width: 0; }
+.word-item-en { font-size: 14px; font-weight: 700; }
+.word-item-vn { font-size: 12px; color: var(--muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.empty-state { text-align: center; padding: 32px 16px; color: var(--muted); font-size: 14px; }
+.empty-icon { font-size: 44px; margin-bottom: 10px; }
+
+/* STUDY PAGE */
+.study-header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+.back-btn {
+  width: 38px; height: 38px; border-radius: 11px; border: 1.5px solid var(--border);
+  background: var(--card); cursor: pointer; font-size: 18px;
+  display: flex; align-items: center; justify-content: center;
+}
+.study-title { font-size: 16px; font-weight: 800; flex: 1; }
+.prog-wrap { margin-bottom: 14px; }
+.prog-meta { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+.prog-track { height: 6px; background: rgba(0,0,0,0.07); border-radius: 10px; }
+.prog-fill { height: 100%; border-radius: 10px; transition: width 0.4s ease; }
+.score-row { display: flex; gap: 8px; margin-bottom: 14px; }
+.score-pill { font-size: 12px; font-weight: 700; padding: 6px 12px; border-radius: 20px; }
+
+/* FLASHCARD */
+.card-stage { perspective: 1000px; height: 270px; cursor: pointer; margin-bottom: 12px; user-select: none; }
+.card-inner { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform 0.5s cubic-bezier(0.4,0,0.2,1); }
+.card-inner.flipped { transform: rotateY(180deg); }
+.card-face {
+  position: absolute; inset: 0; border-radius: 22px;
+  backface-visibility: hidden; -webkit-backface-visibility: hidden;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 20px; box-shadow: var(--shadow); overflow: hidden;
+}
+.card-front { background: var(--card); }
+.card-back { transform: rotateY(180deg); }
+.card-badge { position: absolute; top: 14px; left: 14px; font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; padding: 3px 10px; border-radius: 20px; }
+.card-num { position: absolute; top: 14px; right: 14px; font-size: 12px; color: var(--muted); font-weight: 600; }
+.card-img { width: 80px; height: 80px; border-radius: 14px; object-fit: cover; margin-bottom: 10px; box-shadow: 0 3px 10px rgba(0,0,0,0.13); }
+.card-word { font-size: 30px; font-weight: 800; text-align: center; margin-bottom: 6px; line-height: 1.2; }
+.card-ph { font-size: 13px; color: var(--muted); text-align: center; }
+.card-hint { position: absolute; bottom: 12px; font-size: 11px; color: var(--muted); }
+.card-vn { font-size: 23px; font-weight: 800; text-align: center; margin-bottom: 8px; line-height: 1.3; }
+.card-ex { font-size: 13px; text-align: center; line-height: 1.55; font-style: italic; opacity: 0.7; }
+
+.flip-wrap { display: flex; justify-content: center; margin-bottom: 10px; }
+.flip-btn { font-family: var(--font); font-size: 14px; font-weight: 700; background: var(--card); border: 1.5px solid var(--border); color: var(--muted); padding: 11px 32px; border-radius: 14px; cursor: pointer; }
+.action-row { display: flex; gap: 10px; margin-bottom: 16px; opacity: 0; pointer-events: none; transform: translateY(6px); transition: all 0.2s; }
+.action-row.vis { opacity: 1; pointer-events: all; transform: translateY(0); }
+.act-btn { flex: 1; padding: 14px; border-radius: 14px; font-family: var(--font); font-size: 15px; font-weight: 700; border: none; cursor: pointer; }
+.btn-again { background: var(--coral-l); color: var(--coral-d); }
+.btn-know { background: var(--teal-l); color: var(--teal-d); }
+
+.done-box { text-align: center; padding: 30px 16px; background: var(--card); border-radius: 22px; box-shadow: var(--shadow); }
+.done-box h2 { font-size: 22px; font-weight: 800; margin-bottom: 8px; }
+.done-box p { color: var(--muted); margin-bottom: 20px; font-size: 14px; line-height: 1.6; }
+.done-btns { display: flex; flex-direction: column; gap: 8px; }
+
+@keyframes pop { from { opacity:0; transform:scale(0.95) translateY(8px); } to { opacity:1; transform:scale(1) translateY(0); } }
+.card-stage { animation: pop 0.3s ease both; }
+
+/* SPLASH SCREEN */
+#splash {
+  position: fixed; inset: 0; z-index: 9999;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  background: var(--teal);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+#splash.hide { opacity: 0; transform: scale(1.05); pointer-events: none; }
+.splash-logo { font-size: 72px; margin-bottom: 16px; animation: splashBounce 0.8s ease both; }
+.splash-title { font-size: 28px; font-weight: 900; color: #fff; letter-spacing: -0.5px; animation: splashFade 0.6s 0.3s ease both; opacity: 0; }
+.splash-sub { font-size: 14px; color: rgba(255,255,255,0.75); margin-top: 8px; font-weight: 600; animation: splashFade 0.6s 0.5s ease both; opacity: 0; }
+.splash-bar { width: 120px; height: 4px; background: rgba(255,255,255,0.3); border-radius: 4px; margin-top: 40px; overflow: hidden; animation: splashFade 0.6s 0.6s ease both; opacity: 0; }
+.splash-bar-fill { height: 100%; background: #fff; border-radius: 4px; animation: splashLoad 1.2s 0.7s ease both; width: 0; }
+@keyframes splashBounce { 0%{opacity:0;transform:scale(0.3) rotate(-20deg)} 60%{transform:scale(1.2) rotate(5deg)} 100%{opacity:1;transform:scale(1) rotate(0)} }
+@keyframes splashFade { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+@keyframes splashLoad { from{width:0} to{width:100%} }
+
+/* START STUDY ANIMATION */
+.study-enter {
+  animation: studyEnter 0.4s cubic-bezier(0.34,1.56,0.64,1) both;
+}
+@keyframes studyEnter {
+  from { opacity:0; transform: scale(0.85) translateY(30px); }
+  to   { opacity:1; transform: scale(1) translateY(0); }
+}
+
+/* CONFETTI / CELEBRATION */
+#celebration {
+  position: fixed; inset: 0; z-index: 500; pointer-events: none; overflow: hidden;
+}
+.confetti-piece {
+  position: absolute; width: 10px; height: 10px; border-radius: 2px;
+  animation: confettiFall linear both;
+}
+@keyframes confettiFall {
+  0%   { transform: translateY(-20px) rotate(0deg) scale(1); opacity: 1; }
+  80%  { opacity: 1; }
+  100% { transform: translateY(110vh) rotate(720deg) scale(0.5); opacity: 0; }
+}
+.firework {
+  position: absolute; width: 6px; height: 6px; border-radius: 50%;
+  animation: fireworkBurst 0.8s ease-out both;
+}
+@keyframes fireworkBurst {
+  0%   { transform: translate(0,0) scale(1); opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* DONE BOX ENHANCED */
+.done-box { text-align: center; padding: 30px 16px; background: var(--card); border-radius: 22px; box-shadow: var(--shadow); animation: pop 0.5s cubic-bezier(0.34,1.56,0.64,1) both; }
+.done-box h2 { font-size: 22px; font-weight: 800; margin-bottom: 8px; }
+.done-box p { color: var(--muted); margin-bottom: 20px; font-size: 14px; line-height: 1.6; }
+.done-btns { display: flex; flex-direction: column; gap: 8px; }
+.done-trophy { font-size: 64px; margin-bottom: 10px; animation: trophyPop 0.6s 0.2s cubic-bezier(0.34,1.56,0.64,1) both; opacity: 0; display: block; }
+@keyframes trophyPop { from{opacity:0;transform:scale(0.2) rotate(-30deg)} to{opacity:1;transform:scale(1) rotate(0)} }
+.done-stars { font-size: 28px; letter-spacing: 4px; margin-bottom: 12px; display: block; }
+.done-star { display: inline-block; animation: starPop 0.4s cubic-bezier(0.34,1.56,0.64,1) both; opacity: 0; }
+.done-star:nth-child(1){ animation-delay:0.4s }
+.done-star:nth-child(2){ animation-delay:0.6s }
+.done-star:nth-child(3){ animation-delay:0.8s }
+@keyframes starPop { from{opacity:0;transform:scale(0) rotate(-45deg)} to{opacity:1;transform:scale(1) rotate(0)} }
+.done-stats { display: flex; gap: 10px; justify-content: center; margin-bottom: 18px; }
+.done-stat { background: var(--bg); border-radius: 14px; padding: 10px 18px; }
+.done-stat-num { font-size: 22px; font-weight: 900; }
+.done-stat-label { font-size: 11px; color: var(--muted); font-weight: 600; margin-top: 2px; }
+
+/* DECK CARD TAP EFFECT */
+.deck-card { transition: transform 0.15s, box-shadow 0.15s; }
+.deck-card:active { transform: scale(0.96); box-shadow: 0 1px 6px rgba(0,0,0,0.06); }
+.settings-section { background: var(--card); border-radius: 16px; border: 1px solid var(--border); padding: 16px; margin-bottom: 14px; box-shadow: var(--shadow); }
+.settings-section-title { font-size: 13px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 14px; }
+.theme-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.theme-btn {
+  border-radius: 14px; padding: 12px 8px; border: 2px solid transparent;
+  cursor: pointer; text-align: center; transition: all 0.15s; font-family: var(--font);
+}
+.theme-btn.selected { border-color: var(--teal); }
+.theme-btn .theme-preview {
+  width: 100%; height: 36px; border-radius: 8px; margin-bottom: 6px;
+  display: flex; align-items: center; justify-content: center; gap: 4px;
+}
+.theme-btn .theme-name { font-size: 12px; font-weight: 700; }
+.accent-grid { display: flex; gap: 8px; flex-wrap: wrap; }
+.accent-btn {
+  width: 40px; height: 40px; border-radius: 50%; border: 3px solid transparent;
+  cursor: pointer; transition: transform 0.15s;
+}
+.accent-btn.selected { border-color: var(--text); transform: scale(1.15); }
+.font-grid { display: flex; flex-direction: column; gap: 8px; }
+.font-btn {
+  padding: 12px 14px; border-radius: 12px; border: 2px solid var(--border);
+  background: var(--bg); cursor: pointer; text-align: left; transition: all 0.15s;
+}
+.font-btn.selected { border-color: var(--teal); background: var(--teal-l); }
+.font-btn .font-name { font-size: 14px; font-weight: 700; color: var(--text); }
+.font-btn .font-sample { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.settings-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.settings-row:last-child { border-bottom: none; padding-bottom: 0; }
+.settings-row-label { font-size: 14px; font-weight: 700; }
+.settings-row-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.toggle {
+  width: 48px; height: 28px; border-radius: 14px; background: var(--border);
+  position: relative; cursor: pointer; border: none; transition: background 0.2s; flex-shrink: 0;
+}
+.toggle.on { background: var(--teal); }
+.toggle::after {
+  content: ""; position: absolute; top: 3px; left: 3px;
+  width: 22px; height: 22px; border-radius: 50%; background: #fff;
+  transition: transform 0.2s; box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+}
+.toggle.on::after { transform: translateX(20px); }
+
+/* BACKUP BAR */
+.backup-bar {
+  background: var(--card); border-radius: 16px; border: 1px solid var(--border);
+  padding: 14px 16px; margin-bottom: 16px; box-shadow: var(--shadow);
+}
+.backup-bar-title { font-size: 13px; font-weight: 800; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+.backup-btns { display: flex; gap: 8px; }
+.backup-btn {
+  flex: 1; padding: 11px 8px; border-radius: 12px; font-family: var(--font);
+  font-size: 13px; font-weight: 700; cursor: pointer; border: none;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  transition: opacity 0.15s;
+}
+.backup-btn:active { opacity: 0.7; }
+.backup-export { background: var(--teal-l); color: var(--teal-d); }
+.backup-import { background: var(--blue-l); color: var(--blue-d); }
+.backup-info { font-size: 11px; color: var(--muted); margin-top: 8px; line-height: 1.5; }
+#importFile { display: none; }
+
+/* TOAST */
+.toast {
+  position: fixed; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: #1C1C1E; color: #fff; padding: 10px 20px; border-radius: 24px;
+  font-size: 13px; font-weight: 700; opacity: 0; transition: all 0.3s; z-index: 999;
+  white-space: nowrap; pointer-events: none;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<!-- SPLASH SCREEN -->
+<div id="splash">
+  <div class="splash-logo">📚</div>
+  <div class="splash-title" id="splashTitle">FlashCard</div>
+  <div class="splash-sub">Học từ vựng mỗi ngày</div>
+  <div class="splash-bar"><div class="splash-bar-fill"></div></div>
+</div>
+
+<!-- CELEBRATION OVERLAY -->
+<div id="celebration"></div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<div class="nav">
+  <div class="nav-logo">Flash<span>Card</span> 📚</div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showPage('home')">Bộ thẻ</button>
+    <button class="nav-tab" onclick="showPage('manage')">Quản lý</button>
+    <button class="nav-tab" onclick="showPage('settings')">🎨</button>
+  </div>
+</div>
+
+<!-- HOME PAGE -->
+<div class="page active" id="page-home">
+  <div id="installBanner" style="display:none">
+    <div class="install-banner">
+      <div class="install-banner-icon">📲</div>
+      <div class="install-banner-text">
+        <strong>Cài app lên màn hình chính!</strong>
+        <small id="installHint"></small>
+      </div>
+      <button class="install-close" onclick="dismissInstall()">✕</button>
+    </div>
+  </div>
+  <div class="sec-title">Chọn bộ thẻ để học</div>
+  <div class="deck-list" id="deckListHome"></div>
+</div>
+
+<!-- MANAGE PAGE -->
+<div class="page" id="page-manage">
+  <div class="backup-bar">
+    <div class="backup-bar-title">☁️ Sao lưu dữ liệu</div>
+    <div class="backup-btns">
+      <button class="backup-btn backup-export" onclick="exportBackup()">⬇️ Xuất file backup</button>
+      <button class="backup-btn backup-import" onclick="document.getElementById('importFile').click()">⬆️ Nhập file backup</button>
+    </div>
+    <div class="backup-info" id="backupInfo">Chưa có thông tin backup</div>
+    <input type="file" id="importFile" accept=".json" onchange="importBackup(event)">
+  </div>
+  <div class="sec-title">Bộ thẻ của bạn</div>
+  <div class="deck-list" id="deckListManage"></div>
+  <button class="add-deck-btn" onclick="openAddDeck()">+ Tạo bộ thẻ mới</button>
+</div>
+
+<!-- SETTINGS PAGE -->
+<div class="page" id="page-settings">
+  <div class="settings-section">
+    <div class="settings-section-title">🌗 Giao diện</div>
+    <div class="theme-grid" id="themeGrid"></div>
+  </div>
+  <div class="settings-section">
+    <div class="settings-section-title">🎨 Màu chủ đạo</div>
+    <div class="accent-grid" id="accentGrid"></div>
+  </div>
+  <div class="settings-section">
+    <div class="settings-section-title">🔤 Font chữ</div>
+    <div class="font-grid" id="fontGrid"></div>
+  </div>
+  <div class="settings-section">
+    <div class="settings-section-title">⚙️ Tuỳ chọn khác</div>
+    <div class="settings-row">
+      <div>
+        <div class="settings-row-label">Hoạt ảnh thẻ</div>
+        <div class="settings-row-sub">Hiệu ứng lật thẻ mượt</div>
+      </div>
+      <button class="toggle on" id="toggleAnim" onclick="toggleSetting('anim')"></button>
+    </div>
+    <div class="settings-row">
+      <div>
+        <div class="settings-row-label">Hiển thị phiên âm</div>
+        <div class="settings-row-sub">Phiên âm IPA mặt trước thẻ</div>
+      </div>
+      <button class="toggle on" id="togglePhonetic" onclick="toggleSetting('phonetic')"></button>
+    </div>
+    <div class="settings-row">
+      <div>
+        <div class="settings-row-label">Hỏi trước khi học lại</div>
+        <div class="settings-row-sub">Hỏi tiếp tục hay học từ đầu</div>
+      </div>
+      <button class="toggle on" id="toggleAskResume" onclick="toggleSetting('askResume')"></button>
+    </div>
+  </div>
+  <div style="text-align:center;padding:8px 0 16px;color:var(--muted);font-size:12px">
+    Thay đổi được lưu tự động ✓
+  </div>
+</div>
+
+<!-- STUDY PAGE -->
+<div class="page" id="page-study">
+  <div class="study-header">
+    <button class="back-btn" onclick="goHome()">←</button>
+    <div class="study-title" id="studyTitle"></div>
+  </div>
+  <div class="prog-wrap">
+    <div class="prog-meta"><span id="progLabel">Thẻ 1/1</span><span id="progPct">0%</span></div>
+    <div class="prog-track"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
+  </div>
+  <div class="score-row">
+    <div class="score-pill" style="background:var(--teal-l);color:var(--teal-d)">✓ <span id="sKnow">0</span> biết</div>
+    <div class="score-pill" style="background:var(--coral-l);color:var(--coral-d)">↺ <span id="sAgain">0</span> ôn</div>
+    <div class="score-pill" style="background:var(--bg);color:var(--muted)"><span id="sLeft">0</span> còn</div>
+  </div>
+  <div id="studyArea"></div>
+  <div class="flip-wrap" id="flipWrap">
+    <button class="flip-btn" onclick="flipCard()">↕ Nhấn để xem nghĩa</button>
+  </div>
+  <div class="action-row" id="actionRow">
+    <button class="act-btn btn-again" onclick="markAgain()">↺ Ôn lại</button>
+    <button class="act-btn btn-know" onclick="markKnow()">✓ Đã biết</button>
+  </div>
+</div>
+
+<!-- DECK MODAL -->
+<div class="overlay" id="deckModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="deckModalTitle">Tạo bộ thẻ mới</div>
+    <div class="form-group">
+      <label class="form-label">Tên bộ thẻ</label>
+      <input class="form-input" id="deckName" placeholder="VD: Từ vựng y tế, Tiếng Anh IT...">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Biểu tượng</label>
+      <input class="form-input" id="deckEmoji" placeholder="Nhập emoji VD: 🏥 💻 🌿" maxlength="4">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Màu sắc</label>
+      <div class="color-row" id="colorRow"></div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" onclick="closeModal('deckModal')">Huỷ</button>
+      <button class="btn btn-primary" onclick="saveDeck()">Lưu</button>
+    </div>
+  </div>
+</div>
+
+<!-- WORD MODAL -->
+<div class="overlay" id="wordModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="wordModalTitle">Thêm từ mới</div>
+    <div class="form-group">
+      <label class="form-label">Từ tiếng Anh *</label>
+      <input class="form-input" id="wordEn" placeholder="VD: Calibration">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Phiên âm</label>
+      <input class="form-input" id="wordPh" placeholder="VD: /ˌkælɪˈbreɪʃən/">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Nghĩa tiếng Việt *</label>
+      <input class="form-input" id="wordVn" placeholder="VD: Hiệu chuẩn">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Câu ví dụ</label>
+      <input class="form-input" id="wordEx" placeholder="VD: Annual calibration is required.">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Hình ảnh (tuỳ chọn)</label>
+      <div class="img-upload-area" id="imgUploadArea" onclick="document.getElementById('imgFile').click()">
+        <img class="img-preview" id="imgPreview" alt="">
+        <button class="img-clear-btn" id="imgClearBtn" onclick="event.stopPropagation();clearImage()">✕</button>
+        <div class="img-upload-hint" id="imgHint">
+          <span>🖼️</span>Chọn ảnh từ thiết bị
+        </div>
+      </div>
+      <input type="file" id="imgFile" accept="image/*" onchange="handleImageUpload(event)">
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" onclick="closeModal('wordModal')">Huỷ</button>
+      <button class="btn btn-primary" onclick="saveWord()">Lưu</button>
+    </div>
+  </div>
+</div>
+
+<!-- DECK DETAIL MODAL -->
+<div class="overlay" id="detailModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div class="modal-title" id="detailTitle" style="margin:0"></div>
+      <button class="icon-btn" onclick="openAddWord()" style="font-size:18px;font-weight:800">＋</button>
+    </div>
+    <div id="detailWordList"></div>
+    <div class="modal-btns" style="margin-top:10px">
+      <button class="btn btn-danger" onclick="confirmDeleteDeck()">🗑 Xoá bộ thẻ</button>
+      <button class="btn btn-secondary" onclick="closeModal('detailModal')">Đóng</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM MODAL -->
+<div class="overlay" id="confirmModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="confirmTitle">Xác nhận</div>
+    <p id="confirmMsg" style="color:var(--muted);font-size:14px;margin-bottom:18px;line-height:1.6"></p>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" onclick="closeModal('confirmModal')">Huỷ</button>
+      <button class="btn btn-danger" id="confirmOkBtn">Xoá</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const COLORS = [
+  { name:"teal",   bg:"#1D9E75", light:"#E1F5EE", dark:"#085041" },
+  { name:"purple", bg:"#7F77DD", light:"#EEEDFE", dark:"#3C3489" },
+  { name:"blue",   bg:"#378ADD", light:"#E6F1FB", dark:"#0C447C" },
+  { name:"amber",  bg:"#BA7517", light:"#FAEEDA", dark:"#633806" },
+  { name:"coral",  bg:"#D85A30", light:"#FAECE7", dark:"#993C1D" },
+  { name:"pink",   bg:"#D4537E", light:"#FBEAF0", dark:"#72243E" },
+  { name:"green",  bg:"#639922", light:"#EAF3DE", dark:"#3B6D11" },
+];
+
+// ---- DATA (IndexedDB for large image data, localStorage fallback) ----
+const DB_NAME = "flashcardDB", DB_VER = 1, STORE = "appData";
+
+function openDB() {
+  return new Promise((res, rej) => {
+    const req = indexedDB.open(DB_NAME, DB_VER);
+    req.onupgradeneeded = e => e.target.result.createObjectStore(STORE);
+    req.onsuccess = e => res(e.target.result);
+    req.onerror = () => rej(req.error);
+  });
+}
+async function dbGet(key) {
+  try {
+    const db = await openDB();
+    return new Promise((res, rej) => {
+      const tx = db.transaction(STORE, "readonly");
+      const req = tx.objectStore(STORE).get(key);
+      req.onsuccess = () => res(req.result);
+      req.onerror = () => rej(req.error);
+    });
+  } catch(e) { return null; }
+}
+async function dbSet(key, val) {
+  try {
+    const db = await openDB();
+    return new Promise((res, rej) => {
+      const tx = db.transaction(STORE, "readwrite");
+      tx.objectStore(STORE).put(val, key);
+      tx.oncomplete = () => res(true);
+      tx.onerror = () => rej(tx.error);
+    });
+  } catch(e) { return false; }
+}
+
+async function loadData() {
+  try {
+    const d = await dbGet("fcData");
+    if (d) return d;
+  } catch(e) {}
+  // fallback localStorage
+  try {
+    const s = localStorage.getItem("fcData");
+    if (s) return JSON.parse(s);
+  } catch(e) {}
+  return { decks: [], words: {} };
+}
+async function saveData(d) {
+  await dbSet("fcData", d);
+  try { localStorage.setItem("fcData", JSON.stringify(d)); } catch(e) {}
+  showToast("✓ Đã lưu");
+}
+
+// TOAST
+let toastTimer;
+function showToast(msg) {
+  const el = document.getElementById("toast");
+  el.textContent = msg; el.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove("show"), 1800);
+}
+
+// SEED
+async function seedDefault() {
+  const d = await loadData();
+  if (d.decks.length === 0) {
+    const id = "deck_default";
+    d.decks.push({ id, name:"Hiệu Chuẩn & Quan Trắc", emoji:"⚙️", color:"teal" });
+    d.words[id] = [
+      { id:"w1", en:"Calibration",  ph:"/ˌkælɪˈbreɪʃən/",  vn:"Hiệu chuẩn",          ex:"Annual calibration is required.", img:null },
+      { id:"w2", en:"Accuracy",     ph:"/ˈækjərəsi/",       vn:"Độ chính xác",         ex:"This device has ±0.1% accuracy.", img:null },
+      { id:"w3", en:"Uncertainty",  ph:"/ʌnˈsɜːtənti/",    vn:"Độ không đảm bảo đo", ex:"Report the measurement uncertainty.", img:null },
+      { id:"w4", en:"Traceability", ph:"/ˌtreɪsəˈbɪlɪti/", vn:"Liên kết chuẩn",      ex:"Traceability to national standards.", img:null },
+      { id:"w5", en:"Tolerance",    ph:"/ˈtɒlərəns/",       vn:"Dung sai",             ex:"The reading is within tolerance.", img:null },
+      { id:"w6", en:"Drift",        ph:"/drɪft/",           vn:"Độ trôi",              ex:"Sensor drift occurs over time.", img:null },
+      { id:"w7", en:"Sensor",       ph:"/ˈsɛnsər/",         vn:"Cảm biến",             ex:"Install the temperature sensor first.", img:null },
+      { id:"w8", en:"Humidity",     ph:"/hjuːˈmɪdɪti/",    vn:"Độ ẩm",                ex:"Humidity is measured in percent.", img:null },
+    ];
+    await saveData(d);
+  }
+}
+
+// PWA INSTALL BANNER
+let deferredPrompt = null;
+window.addEventListener("beforeinstallprompt", e => {
+  e.preventDefault(); deferredPrompt = e; showInstallBanner();
+});
+function showInstallBanner() {
+  if (localStorage.getItem("installDismissed")) return;
+  const banner = document.getElementById("installBanner");
+  const hint = document.getElementById("installHint");
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  if (isIOS) {
+    hint.textContent = 'Nhấn nút Chia sẻ ⬆ → "Thêm vào Màn hình chính"';
+    banner.style.display = "block";
+  } else if (deferredPrompt) {
+    hint.textContent = "Cài app để dùng offline, không cần mở trình duyệt";
+    banner.style.display = "block";
+    banner.querySelector(".install-banner").style.cursor = "pointer";
+    banner.querySelector(".install-banner").onclick = async (e) => {
+      if (e.target.classList.contains("install-close")) return;
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === "accepted") dismissInstall();
+    };
+  } else {
+    // iOS/Safari fallback
+    const isIOS2 = /safari/i.test(navigator.userAgent) && !/chrome/i.test(navigator.userAgent);
+    if (isIOS2) {
+      hint.textContent = 'Nhấn nút Chia sẻ ⬆ → "Thêm vào Màn hình chính"';
+      banner.style.display = "block";
+    }
+  }
+}
+function dismissInstall() {
+  localStorage.setItem("installDismissed","1");
+  document.getElementById("installBanner").style.display = "none";
+}
+
+// STATE
+let currentPage = "home";
+let editingDeckId = null, selectedColor = "teal";
+let activeDeckId = null, editingWordId = null;
+let studyQueue = [], studyIdx = 0, flipped = false;
+let knowSet = new Set(), againSet = new Set();
+let currentImageData = null;
+
+// IMAGE
+function handleImageUpload(e) {
+  const file = e.target.files[0]; if (!file) return;
+  // Resize image before storing
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      const MAX = 400;
+      let w = img.width, h = img.height;
+      if (w > MAX || h > MAX) {
+        if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+        else { w = Math.round(w * MAX / h); h = MAX; }
+      }
+      canvas.width = w; canvas.height = h;
+      canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+      currentImageData = canvas.toDataURL("image/jpeg", 0.75);
+      document.getElementById("imgPreview").src = currentImageData;
+      document.getElementById("imgPreview").style.display = "block";
+      document.getElementById("imgHint").style.display = "none";
+      document.getElementById("imgClearBtn").style.display = "flex";
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+function clearImage() {
+  currentImageData = null;
+  document.getElementById("imgPreview").style.display = "none";
+  document.getElementById("imgHint").style.display = "block";
+  document.getElementById("imgClearBtn").style.display = "none";
+  document.getElementById("imgFile").value = "";
+}
+function resetImageUI() {
+  currentImageData = null;
+  document.getElementById("imgPreview").src = "";
+  document.getElementById("imgPreview").style.display = "none";
+  document.getElementById("imgHint").style.display = "block";
+  document.getElementById("imgClearBtn").style.display = "none";
+  document.getElementById("imgFile").value = "";
+}
+
+// PAGES
+function showPage(p) {
+  document.querySelectorAll(".page").forEach(el => el.classList.remove("active"));
+  document.querySelectorAll(".nav-tab").forEach(el => el.classList.remove("active"));
+  document.getElementById("page-"+p).classList.add("active");
+  const tabs = document.querySelectorAll(".nav-tab");
+  if (p==="home")     tabs[0].classList.add("active");
+  if (p==="manage")   tabs[1].classList.add("active");
+  if (p==="settings") tabs[2].classList.add("active");
+  currentPage = p;
+  if (p==="home")     renderHome();
+  if (p==="manage")   { renderManage(); updateBackupInfo(); }
+  if (p==="settings") renderSettingsPage();
+}
+function goHome() { showPage("home"); }
+
+// RENDER HOME
+async function renderHome() {
+  const d = await loadData();
+  const el = document.getElementById("deckListHome");
+  if (d.decks.length === 0) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">📚</div><p>Chưa có bộ thẻ nào.<br>Vào tab <strong>Quản lý</strong> để tạo nhé!</p></div>`;
+    return;
+  }
+  el.innerHTML = d.decks.map(deck => {
+    const words = d.words[deck.id] || [];
+    const c = COLORS.find(c => c.name === deck.color) || COLORS[0];
+    const prog = d.progress && d.progress[deck.id];
+    const knowCount = prog ? (prog.knowIds || []).length : 0;
+    const total = words.length;
+    const pct = total ? Math.round(knowCount/total*100) : 0;
+    const badge = knowCount > 0
+      ? `<div style="font-size:11px;font-weight:700;color:${c.dark};background:${c.light};padding:3px 8px;border-radius:20px;white-space:nowrap">${knowCount}/${total} ✓</div>`
+      : "";
+    return `<div class="deck-card" onclick="startStudy('${deck.id}')">
+      <div class="deck-icon" style="background:${c.light}">${deck.emoji}</div>
+      <div class="deck-info">
+        <div class="deck-name">${deck.name}</div>
+        <div class="deck-meta">${total} từ vựng${knowCount>0?" · "+pct+"% đã biết":""}</div>
+        ${knowCount>0?`<div style="height:4px;background:rgba(0,0,0,0.07);border-radius:10px;margin-top:5px"><div style="height:100%;width:${pct}%;background:${c.bg};border-radius:10px;transition:width 0.4s"></div></div>`:""}
+      </div>
+      ${badge}
+    </div>`;
+  }).join("");
+  // Show install banner if not dismissed
+  if (!localStorage.getItem("installDismissed")) showInstallBanner();
+}
+
+// RENDER MANAGE
+async function renderManage() {
+  const d = await loadData();
+  const el = document.getElementById("deckListManage");
+  if (d.decks.length === 0) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">📂</div><p>Chưa có bộ thẻ nào</p></div>`;
+    return;
+  }
+  el.innerHTML = d.decks.map(deck => {
+    const words = d.words[deck.id] || [];
+    const c = COLORS.find(c => c.name === deck.color) || COLORS[0];
+    return `<div class="deck-card" onclick="openDeckDetail('${deck.id}')">
+      <div class="deck-icon" style="background:${c.light}">${deck.emoji}</div>
+      <div class="deck-info">
+        <div class="deck-name">${deck.name}</div>
+        <div class="deck-meta">${words.length} từ</div>
+      </div>
+      <div class="deck-actions">
+        <button class="icon-btn" onclick="event.stopPropagation();openEditDeck('${deck.id}')">✏️</button>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+// DECK MODAL
+function buildColorRow(selected) {
+  document.getElementById("colorRow").innerHTML = COLORS.map(c =>
+    `<div class="color-dot${c.name===selected?" selected":""}" style="background:${c.bg}" onclick="selectColor('${c.name}')"></div>`
+  ).join("");
+}
+function selectColor(name) { selectedColor = name; buildColorRow(name); }
+function openAddDeck() {
+  editingDeckId = null; selectedColor = "teal";
+  document.getElementById("deckModalTitle").textContent = "Tạo bộ thẻ mới";
+  document.getElementById("deckName").value = "";
+  document.getElementById("deckEmoji").value = "";
+  buildColorRow("teal"); openModal("deckModal");
+}
+async function openEditDeck(id) {
+  const d = await loadData();
+  const deck = d.decks.find(dk => dk.id === id); if (!deck) return;
+  editingDeckId = id; selectedColor = deck.color;
+  document.getElementById("deckModalTitle").textContent = "Chỉnh sửa bộ thẻ";
+  document.getElementById("deckName").value = deck.name;
+  document.getElementById("deckEmoji").value = deck.emoji;
+  buildColorRow(deck.color); openModal("deckModal");
+}
+async function saveDeck() {
+  const name = document.getElementById("deckName").value.trim();
+  const emoji = document.getElementById("deckEmoji").value.trim() || "📚";
+  if (!name) { alert("Vui lòng nhập tên bộ thẻ!"); return; }
+  const d = await loadData();
+  if (editingDeckId) {
+    const deck = d.decks.find(dk => dk.id === editingDeckId);
+    if (deck) { deck.name = name; deck.emoji = emoji; deck.color = selectedColor; }
+  } else {
+    const id = "deck_"+Date.now();
+    d.decks.push({ id, name, emoji, color: selectedColor });
+    d.words[id] = [];
+  }
+  await saveData(d); closeModal("deckModal"); renderManage();
+}
+
+// DECK DETAIL
+async function openDeckDetail(id) {
+  activeDeckId = id;
+  const d = await loadData();
+  const deck = d.decks.find(dk => dk.id === id); if (!deck) return;
+  document.getElementById("detailTitle").textContent = deck.emoji+" "+deck.name;
+  renderDetailWords(id); openModal("detailModal");
+}
+async function renderDetailWords(id) {
+  const d = await loadData();
+  const words = d.words[id] || [];
+  const el = document.getElementById("detailWordList");
+  if (words.length === 0) {
+    el.innerHTML = `<div class="empty-state" style="padding:16px"><div class="empty-icon">📝</div><p>Chưa có từ nào.<br>Nhấn + để thêm từ mới!</p></div>`;
+    return;
+  }
+  el.innerHTML = `<div class="word-list">${words.map(w => {
+    const thumb = w.img
+      ? `<div class="word-item-thumb"><img src="${w.img}" alt="${w.en}"></div>`
+      : `<div class="word-item-thumb">📖</div>`;
+    return `<div class="word-item">
+      ${thumb}
+      <div class="word-item-info">
+        <div class="word-item-en">${w.en}</div>
+        <div class="word-item-vn">${w.vn}${w.ph ? " · "+w.ph : ""}</div>
+      </div>
+      <div style="display:flex;gap:6px">
+        <button class="icon-btn" onclick="openEditWord('${id}','${w.id}')">✏️</button>
+        <button class="icon-btn" onclick="deleteWord('${id}','${w.id}')">🗑</button>
+      </div>
+    </div>`;
+  }).join("")}</div>`;
+}
+
+// WORD MODAL
+function openAddWord() {
+  editingWordId = null;
+  document.getElementById("wordModalTitle").textContent = "Thêm từ mới";
+  document.getElementById("wordEn").value = "";
+  document.getElementById("wordPh").value = "";
+  document.getElementById("wordVn").value = "";
+  document.getElementById("wordEx").value = "";
+  resetImageUI(); openModal("wordModal");
+}
+async function openEditWord(deckId, wordId) {
+  const d = await loadData();
+  const w = (d.words[deckId]||[]).find(w => w.id === wordId); if (!w) return;
+  editingWordId = wordId;
+  document.getElementById("wordModalTitle").textContent = "Chỉnh sửa từ";
+  document.getElementById("wordEn").value = w.en;
+  document.getElementById("wordPh").value = w.ph || "";
+  document.getElementById("wordVn").value = w.vn;
+  document.getElementById("wordEx").value = w.ex || "";
+  if (w.img) {
+    currentImageData = w.img;
+    document.getElementById("imgPreview").src = w.img;
+    document.getElementById("imgPreview").style.display = "block";
+    document.getElementById("imgHint").style.display = "none";
+    document.getElementById("imgClearBtn").style.display = "flex";
+  } else { resetImageUI(); }
+  openModal("wordModal");
+}
+async function saveWord() {
+  const en = document.getElementById("wordEn").value.trim();
+  const ph = document.getElementById("wordPh").value.trim();
+  const vn = document.getElementById("wordVn").value.trim();
+  const ex = document.getElementById("wordEx").value.trim();
+  if (!en || !vn) { alert("Vui lòng nhập từ tiếng Anh và nghĩa tiếng Việt!"); return; }
+  const d = await loadData();
+  if (!d.words[activeDeckId]) d.words[activeDeckId] = [];
+  if (editingWordId) {
+    const w = d.words[activeDeckId].find(w => w.id === editingWordId);
+    if (w) { w.en = en; w.ph = ph; w.vn = vn; w.ex = ex; w.img = currentImageData || null; }
+  } else {
+    d.words[activeDeckId].push({ id:"w_"+Date.now(), en, ph, vn, ex, img: currentImageData || null });
+  }
+  await saveData(d); closeModal("wordModal"); renderDetailWords(activeDeckId);
+}
+async function deleteWord(deckId, wordId) {
+  const d = await loadData();
+  d.words[deckId] = (d.words[deckId]||[]).filter(w => w.id !== wordId);
+  await saveData(d); renderDetailWords(deckId);
+}
+
+// DELETE DECK
+function confirmDeleteDeck() {
+  document.getElementById("confirmTitle").textContent = "Xoá bộ thẻ?";
+  document.getElementById("confirmMsg").textContent = "Tất cả từ vựng sẽ bị xoá. Không thể khôi phục!";
+  document.getElementById("confirmOkBtn").onclick = async () => {
+    const d = await loadData();
+    d.decks = d.decks.filter(dk => dk.id !== activeDeckId);
+    delete d.words[activeDeckId];
+    await saveData(d); closeModal("confirmModal"); closeModal("detailModal"); renderManage();
+  };
+  openModal("confirmModal");
+}
+
+// MODAL HELPERS
+function openModal(id)  { document.getElementById(id).classList.add("open"); }
+function closeModal(id) { document.getElementById(id).classList.remove("open"); }
+document.querySelectorAll(".overlay").forEach(o => {
+  o.addEventListener("click", e => { if (e.target === o) o.classList.remove("open"); });
+});
+
+// STUDY
+function shuffle(a) { for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]; } return a; }
+async function startStudy(deckId) {
+  const d = await loadData();
+  const deck = d.decks.find(dk => dk.id === deckId);
+  const words = d.words[deckId] || [];
+  if (words.length === 0) { alert("Bộ thẻ này chưa có từ nào! Vào Quản lý để thêm từ nhé."); return; }
+  activeDeckId = deckId;
+
+  // Load saved progress
+  const prog = d.progress && d.progress[deckId];
+  if (prog && prog.knowIds && prog.knowIds.length > 0) {
+    const resume = confirm(`Bạn đã học ${prog.knowIds.length} từ lần trước.\n\nTiếp tục từ chỗ đã học, hay học lại từ đầu?`);
+    if (resume) {
+      // Only study words not yet known
+      const remaining = words.filter(w => !prog.knowIds.includes(w.id));
+      if (remaining.length === 0) {
+        if (confirm("Bạn đã biết hết tất cả từ trong bộ này! 🎉\nHọc lại từ đầu không?")) {
+          clearProgress(deckId); studyQueue = shuffle([...words]);
+        } else return;
+      } else {
+        studyQueue = shuffle(remaining);
+        knowSet = new Set(prog.knowIds);
+        againSet = new Set(prog.againIds || []);
+      }
+    } else {
+      clearProgress(deckId);
+      studyQueue = shuffle([...words]);
+      knowSet.clear(); againSet.clear();
+    }
+  } else {
+    studyQueue = shuffle([...words]);
+    knowSet.clear(); againSet.clear();
+  }
+
+  studyIdx = 0; flipped = false;
+  const c = COLORS.find(c => c.name === deck.color) || COLORS[0];
+  document.getElementById("progFill").style.background = c.bg;
+  document.getElementById("studyTitle").textContent = deck.emoji+" "+deck.name;
+  showPage("study"); animateStudyStart(); updateStudyUI(); renderStudyCard();
+}
+
+async function saveProgress() {
+  const d = await loadData();
+  if (!d.progress) d.progress = {};
+  d.progress[activeDeckId] = {
+    knowIds: [...knowSet],
+    againIds: [...againSet],
+    savedAt: new Date().toISOString()
+  };
+  await saveData(d);
+}
+
+async function clearProgress(deckId) {
+  const d = await loadData();
+  if (d.progress) delete d.progress[deckId];
+  await saveData(d);
+  knowSet.clear(); againSet.clear();
+}
+function updateStudyUI() {
+  const total = studyQueue.length, done = studyIdx;
+  const pct = total ? Math.round((done/total)*100) : 0;
+  document.getElementById("progLabel").textContent = `Thẻ ${Math.min(done+1,total)} / ${total}`;
+  document.getElementById("progPct").textContent = pct+"%";
+  document.getElementById("progFill").style.width = pct+"%";
+  document.getElementById("sKnow").textContent = knowSet.size;
+  document.getElementById("sAgain").textContent = againSet.size;
+  document.getElementById("sLeft").textContent = Math.max(0,total-done);
+}
+async function renderStudyCard() {
+  const area = document.getElementById("studyArea");
+  const flipW = document.getElementById("flipWrap");
+  const actRow = document.getElementById("actionRow");
+  if (studyIdx >= studyQueue.length) {
+    flipW.style.display = "none"; actRow.classList.remove("vis");
+    // If all words known, clear progress
+    const d2 = await loadData();
+    const allWords = d2.words[activeDeckId] || [];
+    const allDone = allWords.every(w => knowSet.has(w.id));
+    if (allDone) clearProgress(activeDeckId);
+    else saveProgress();
+    // Determine stars
+    const total2 = allWords.length;
+    const pct2 = total2 ? Math.round(knowSet.size / total2 * 100) : 0;
+    const stars = pct2 >= 90 ? 3 : pct2 >= 60 ? 2 : 1;
+    const starEmojis = "⭐".repeat(stars) + (stars < 3 ? "☆".repeat(3-stars) : "");
+    // Launch celebration
+    launchCelebration(allDone);
+    area.innerHTML = `<div class="done-box">
+      <span class="done-trophy">${allDone ? "🏆" : stars===2 ? "🥈" : "💪"}</span>
+      <span class="done-stars">${[...starEmojis].map(s=>`<span class="done-star">${s}</span>`).join("")}</span>
+      <h2>${allDone ? "Xuất sắc! Đã thuộc hết!" : "Hoàn thành buổi học!"}</h2>
+      <div class="done-stats">
+        <div class="done-stat">
+          <div class="done-stat-num" style="color:var(--teal)">${knowSet.size}</div>
+          <div class="done-stat-label">Đã biết ✓</div>
+        </div>
+        <div class="done-stat">
+          <div class="done-stat-num" style="color:var(--coral)">${againSet.size}</div>
+          <div class="done-stat-label">Cần ôn ↺</div>
+        </div>
+        <div class="done-stat">
+          <div class="done-stat-num">${pct2}%</div>
+          <div class="done-stat-label">Điểm số</div>
+        </div>
+      </div>
+      <div class="done-btns">
+        ${againSet.size>0?`<button class="btn btn-danger" onclick="reviewAgain()">↺ Ôn lại ${againSet.size} từ chưa nhớ</button>`:""}
+        <button class="btn btn-primary" onclick="startStudy('${activeDeckId}')">▶ Học lại từ đầu</button>
+        <button class="btn btn-secondary" onclick="goHome()">← Về trang chủ</button>
+      </div>
+    </div>`;
+    return;
+  }
+  const w = studyQueue[studyIdx];
+  const d = await loadData();
+  const deck = d.decks.find(dk => dk.id === activeDeckId) || {};
+  const c = COLORS.find(c => c.name === deck.color) || COLORS[0];
+  flipped = false;
+  flipW.style.display = "flex"; flipW.style.opacity = "1";
+  actRow.classList.remove("vis");
+  const imgEl = w.img ? `<img class="card-img" src="${w.img}" alt="${w.en}">` : "";
+  area.innerHTML = `<div class="card-stage" onclick="flipCard()">
+    <div class="card-inner" id="cardInner">
+      <div class="card-face card-front">
+        <span class="card-badge" style="background:${c.light};color:${c.dark}">${deck.emoji} ${deck.name}</span>
+        <span class="card-num">${studyIdx+1}/${studyQueue.length}</span>
+        ${imgEl}
+        <div class="card-word">${w.en}</div>
+        <div class="card-ph">${w.ph||""}</div>
+        <div class="card-hint">chạm để lật ↕</div>
+      </div>
+      <div class="card-face card-back" style="background:${c.light}">
+        <span class="card-badge" style="background:${c.bg};color:#fff">${deck.emoji} ${deck.name}</span>
+        <span class="card-num">${studyIdx+1}/${studyQueue.length}</span>
+        ${imgEl}
+        <div class="card-vn" style="color:${c.dark}">${w.vn}</div>
+        ${w.ex?`<div class="card-ex" style="color:${c.dark}">"${w.ex}"</div>`:""}
+        <div class="card-hint">chạm để lật lại ↕</div>
+      </div>
+    </div>
+  </div>`;
+}
+function flipCard() {
+  if (studyIdx >= studyQueue.length) return;
+  flipped = !flipped;
+  const ci = document.getElementById("cardInner"); if (!ci) return;
+  ci.classList.toggle("flipped", flipped);
+  const ar = document.getElementById("actionRow"), fw = document.getElementById("flipWrap");
+  if (flipped) { ar.classList.add("vis"); fw.style.opacity="0"; }
+  else { ar.classList.remove("vis"); fw.style.opacity="1"; }
+}
+function markKnow()  { knowSet.add(studyQueue[studyIdx].id);  studyIdx++; updateStudyUI(); renderStudyCard(); saveProgress(); }
+function markAgain() { againSet.add(studyQueue[studyIdx].id); studyIdx++; updateStudyUI(); renderStudyCard(); saveProgress(); }
+async function reviewAgain() {
+  const d = await loadData();
+  const allWords = d.words[activeDeckId] || [];
+  studyQueue = shuffle(allWords.filter(w => againSet.has(w.id)));
+  studyIdx=0; flipped=false; knowSet.clear(); againSet.clear();
+  updateStudyUI(); renderStudyCard();
+}
+document.addEventListener("keydown", e => {
+  if (currentPage !== "study") return;
+  if (e.code==="Space") { e.preventDefault(); flipCard(); }
+  if (e.code==="ArrowRight" && flipped) markKnow();
+  if (e.code==="ArrowLeft"  && flipped) markAgain();
+});
+
+// BACKUP & RESTORE
+async function exportBackup() {
+  const d = await loadData();
+  const backup = {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    data: d
+  };
+  const json = JSON.stringify(backup, null, 2);
+  const blob = new Blob([json], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  const date = new Date().toISOString().slice(0,10);
+  a.href = url;
+  a.download = `flashcard-backup-${date}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  // Save last backup time
+  localStorage.setItem("lastBackup", new Date().toISOString());
+  updateBackupInfo();
+  showToast("✓ Đã xuất file backup!");
+}
+
+function importBackup(e) {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async ev => {
+    try {
+      const backup = JSON.parse(ev.target.result);
+      // Support both raw data and wrapped backup format
+      const d = backup.data || backup;
+      if (!d.decks || !d.words) throw new Error("File không hợp lệ");
+      const totalWords = Object.values(d.words).reduce((s, arr) => s + arr.length, 0);
+      const msg = `Tìm thấy ${d.decks.length} bộ thẻ và ${totalWords} từ vựng.\n\nDữ liệu hiện tại sẽ bị GHI ĐÈ. Bạn có chắc không?`;
+      if (!confirm(msg)) return;
+      await saveData(d);
+      renderManage();
+      showToast("✓ Nhập backup thành công!");
+    } catch(err) {
+      alert("File backup không hợp lệ hoặc bị lỗi!\n" + err.message);
+    }
+    document.getElementById("importFile").value = "";
+  };
+  reader.readAsText(file);
+}
+
+function updateBackupInfo() {
+  const el = document.getElementById("backupInfo");
+  if (!el) return;
+  const last = localStorage.getItem("lastBackup");
+  if (last) {
+    const d = new Date(last);
+    const str = d.toLocaleDateString("vi-VN") + " lúc " + d.toLocaleTimeString("vi-VN", {hour:"2-digit",minute:"2-digit"});
+    el.textContent = "⚠️ Nên backup thường xuyên để tránh mất dữ liệu. Lần cuối: " + str;
+  } else {
+    el.textContent = "⚠️ Chưa backup lần nào — nhấn Xuất file backup để lưu an toàn!";
+  }
+}
+
+// ---- SETTINGS ----
+const THEMES = [
+  { id:"light",  name:"Sáng",    bg:"#F2F0EC", card:"#FFFFFF", text:"#1C1C1E", muted:"#6B6B6B" },
+  { id:"dark",   name:"Tối",     bg:"#1C1C1E", card:"#2C2C2E", text:"#F2F0EC", muted:"#8E8E93" },
+  { id:"cream",  name:"Kem",     bg:"#FFF8EE", card:"#FFFDF7", text:"#2D1F0E", muted:"#8B7355" },
+  { id:"navy",   name:"Navy",    bg:"#0D1B2A", card:"#1B2A3B", text:"#E8F4FD", muted:"#7FA8C9" },
+  { id:"forest", name:"Rừng",    bg:"#1A2B1A", card:"#243324", text:"#E8F5E8", muted:"#7FAF7F" },
+  { id:"rose",   name:"Hồng",    bg:"#FDF0F5", card:"#FFFFFF", text:"#2D1020", muted:"#A06080" },
+];
+const ACCENTS = [
+  { id:"teal",   bg:"#1D9E75", light:"#E1F5EE", dark:"#085041" },
+  { id:"purple", bg:"#7F77DD", light:"#EEEDFE", dark:"#3C3489" },
+  { id:"blue",   bg:"#378ADD", light:"#E6F1FB", dark:"#0C447C" },
+  { id:"amber",  bg:"#E0920A", light:"#FAEEDA", dark:"#633806" },
+  { id:"coral",  bg:"#D85A30", light:"#FAECE7", dark:"#993C1D" },
+  { id:"pink",   bg:"#D4537E", light:"#FBEAF0", dark:"#72243E" },
+  { id:"green",  bg:"#639922", light:"#EAF3DE", dark:"#3B6D11" },
+  { id:"indigo", bg:"#4F46E5", light:"#EEF2FF", dark:"#2D298A" },
+];
+const FONTS = [
+  { id:"nunito",    name:"Nunito",       sample:"The quick brown fox", css:"'Nunito', sans-serif" },
+  { id:"system",    name:"Mặc định",     sample:"The quick brown fox", css:"-apple-system, BlinkMacSystemFont, sans-serif" },
+  { id:"serif",     name:"Serif",        sample:"The quick brown fox", css:"Georgia, 'Times New Roman', serif" },
+  { id:"mono",      name:"Monospace",    sample:"The quick brown fox", css:"'Courier New', Courier, monospace" },
+];
+
+function loadSettings() {
+  try { return JSON.parse(localStorage.getItem("appSettings") || "{}"); } catch(e) { return {}; }
+}
+function saveSettings(s) { localStorage.setItem("appSettings", JSON.stringify(s)); }
+
+function applySettings() {
+  const s = loadSettings();
+  const theme = THEMES.find(t => t.id === (s.theme || "light")) || THEMES[0];
+  const accent = ACCENTS.find(a => a.id === (s.accent || "teal")) || ACCENTS[0];
+  const font = FONTS.find(f => f.id === (s.font || "nunito")) || FONTS[0];
+  const root = document.documentElement;
+  root.style.setProperty("--bg",    theme.bg);
+  root.style.setProperty("--card",  theme.card);
+  root.style.setProperty("--text",  theme.text);
+  root.style.setProperty("--muted", theme.muted);
+  root.style.setProperty("--teal",   accent.bg);
+  root.style.setProperty("--teal-l", accent.light);
+  root.style.setProperty("--teal-d", accent.dark);
+  root.style.setProperty("--font", font.css);
+  document.body.style.fontFamily = font.css;
+  // toggles
+  ["anim","phonetic","askResume"].forEach(k => {
+    const val = s[k] !== false; // default true
+    const el = document.getElementById("toggle"+k.charAt(0).toUpperCase()+k.slice(1));
+    if (el) el.classList.toggle("on", val);
+  });
+}
+
+function renderSettingsPage() {
+  const s = loadSettings();
+  // THEMES
+  document.getElementById("themeGrid").innerHTML = THEMES.map(t =>
+    `<button class="theme-btn${(s.theme||"light")===t.id?" selected":""}" onclick="setTheme('${t.id}')" style="background:${t.bg}">
+      <div class="theme-preview" style="background:${t.card}">
+        <div style="width:40%;height:12px;border-radius:4px;background:${t.text};opacity:0.7"></div>
+        <div style="width:20%;height:12px;border-radius:4px;background:#1D9E75"></div>
+      </div>
+      <div class="theme-name" style="color:${t.text}">${t.name}</div>
+    </button>`
+  ).join("");
+  // ACCENTS
+  document.getElementById("accentGrid").innerHTML = ACCENTS.map(a =>
+    `<button class="accent-btn${(s.accent||"teal")===a.id?" selected":""}" style="background:${a.bg}" onclick="setAccent('${a.id}')"></button>`
+  ).join("");
+  // FONTS
+  document.getElementById("fontGrid").innerHTML = FONTS.map(f =>
+    `<button class="font-btn${(s.font||"nunito")===f.id?" selected":""}" onclick="setFont('${f.id}')">
+      <div class="font-name" style="font-family:${f.css}">${f.name}</div>
+      <div class="font-sample" style="font-family:${f.css}">${f.sample}</div>
+    </button>`
+  ).join("");
+  // toggles
+  ["anim","phonetic","askResume"].forEach(k => {
+    const val = s[k] !== false;
+    const el = document.getElementById("toggle"+k.charAt(0).toUpperCase()+k.slice(1));
+    if (el) el.classList.toggle("on", val);
+  });
+}
+
+function setTheme(id) {
+  const s = loadSettings(); s.theme = id; saveSettings(s);
+  applySettings(); renderSettingsPage(); showToast("✓ Đã đổi giao diện");
+}
+function setAccent(id) {
+  const s = loadSettings(); s.accent = id; saveSettings(s);
+  applySettings(); renderSettingsPage(); showToast("✓ Đã đổi màu chủ đạo");
+}
+function setFont(id) {
+  const s = loadSettings(); s.font = id; saveSettings(s);
+  applySettings(); renderSettingsPage(); showToast("✓ Đã đổi font chữ");
+}
+function toggleSetting(key) {
+  const s = loadSettings();
+  s[key] = s[key] === false ? true : false;
+  saveSettings(s); applySettings(); showToast("✓ Đã lưu");
+}
+
+// ---- SPLASH SCREEN ----
+function initSplash() {
+  const s = loadSettings();
+  const accentId = s.accent || "teal";
+  const accentColors = {
+    teal:"#1D9E75", purple:"#7F77DD", blue:"#378ADD",
+    amber:"#E0920A", coral:"#D85A30", pink:"#D4537E",
+    green:"#639922", indigo:"#4F46E5"
+  };
+  const splash = document.getElementById("splash");
+  splash.style.background = accentColors[accentId] || "#1D9E75";
+  const appTitle = document.querySelector("meta[name='apple-mobile-web-app-title']");
+  if (appTitle) document.getElementById("splashTitle").textContent = appTitle.content;
+  setTimeout(() => {
+    splash.classList.add("hide");
+    setTimeout(() => { splash.style.display = "none"; }, 500);
+  }, 1800);
+}
+
+// ---- CONFETTI & FIREWORKS ----
+function launchCelebration(allKnown) {
+  const el = document.getElementById("celebration");
+  el.innerHTML = "";
+  const colors = ["#1D9E75","#7F77DD","#378ADD","#D4537E","#E0920A","#D85A30","#639922","#fff"];
+  // Confetti
+  for (let i = 0; i < 80; i++) {
+    const piece = document.createElement("div");
+    piece.className = "confetti-piece";
+    const color = colors[Math.floor(Math.random() * colors.length)];
+    const size = 6 + Math.random() * 10;
+    const x = Math.random() * 100;
+    const dur = 1.5 + Math.random() * 2;
+    const delay = Math.random() * 1.2;
+    const shape = Math.random() > 0.5 ? "50%" : (Math.random() > 0.5 ? "2px" : "50% 0");
+    piece.style.cssText = `
+      left:${x}vw; top:-20px;
+      width:${size}px; height:${size}px;
+      background:${color}; border-radius:${shape};
+      animation-duration:${dur}s; animation-delay:${delay}s;
+    `;
+    el.appendChild(piece);
+  }
+  // Fireworks (burst from random points)
+  if (allKnown) {
+    for (let b = 0; b < 5; b++) {
+      const bx = 20 + Math.random() * 60;
+      const by = 15 + Math.random() * 50;
+      setTimeout(() => launchBurst(el, bx, by, colors), b * 300);
+    }
+  }
+  // Clear after 4s
+  setTimeout(() => { el.innerHTML = ""; }, 4000);
+}
+
+function launchBurst(el, cx, cy, colors) {
+  for (let i = 0; i < 16; i++) {
+    const dot = document.createElement("div");
+    dot.className = "firework";
+    const angle = (i / 16) * Math.PI * 2;
+    const dist = 40 + Math.random() * 60;
+    const tx = Math.cos(angle) * dist;
+    const ty = Math.sin(angle) * dist;
+    const color = colors[Math.floor(Math.random() * colors.length)];
+    dot.style.cssText = `
+      left:${cx}vw; top:${cy}vh;
+      background:${color};
+      width:${4 + Math.random()*6}px; height:${4 + Math.random()*6}px;
+    `;
+    dot.style.setProperty("--tx", tx+"px");
+    dot.style.setProperty("--ty", ty+"px");
+    dot.style.animation = `fireworkBurst 0.8s ${Math.random()*0.2}s ease-out both`;
+    dot.style.transform = `translate(${tx}px, ${ty}px)`;
+    el.appendChild(dot);
+  }
+}
+
+// ---- STUDY START ANIMATION ----
+function animateStudyStart() {
+  const page = document.getElementById("page-study");
+  page.style.opacity = "0";
+  page.style.transform = "scale(0.94) translateY(20px)";
+  page.style.transition = "all 0.4s cubic-bezier(0.34,1.2,0.64,1)";
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      page.style.opacity = "1";
+      page.style.transform = "scale(1) translateY(0)";
+    });
+  });
+  setTimeout(() => { page.style.transition = ""; }, 400);
+}
+
+// INIT
+(async () => {
+  applySettings();
+  initSplash();
+  await seedDefault();
+  renderHome();
+})();
+</script>
+</body>
+</html>
