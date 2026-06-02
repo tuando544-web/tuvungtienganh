@@ -239,6 +239,118 @@ body {
 @keyframes pop { from { opacity:0; transform:scale(0.95) translateY(8px); } to { opacity:1; transform:scale(1) translateY(0); } }
 .card-stage { animation: pop 0.3s ease both; }
 
+/* SPLASH SCREEN */
+#splash {
+  position: fixed; inset: 0; z-index: 9999;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  background: var(--teal);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+#splash.hide { opacity: 0; transform: scale(1.05); pointer-events: none; }
+.splash-logo { font-size: 72px; margin-bottom: 16px; animation: splashBounce 0.8s ease both; }
+.splash-title { font-size: 28px; font-weight: 900; color: #fff; letter-spacing: -0.5px; animation: splashFade 0.6s 0.3s ease both; opacity: 0; }
+.splash-sub { font-size: 14px; color: rgba(255,255,255,0.75); margin-top: 8px; font-weight: 600; animation: splashFade 0.6s 0.5s ease both; opacity: 0; }
+.splash-bar { width: 120px; height: 4px; background: rgba(255,255,255,0.3); border-radius: 4px; margin-top: 40px; overflow: hidden; animation: splashFade 0.6s 0.6s ease both; opacity: 0; }
+.splash-bar-fill { height: 100%; background: #fff; border-radius: 4px; animation: splashLoad 1.2s 0.7s ease both; width: 0; }
+@keyframes splashBounce { 0%{opacity:0;transform:scale(0.3) rotate(-20deg)} 60%{transform:scale(1.2) rotate(5deg)} 100%{opacity:1;transform:scale(1) rotate(0)} }
+@keyframes splashFade { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+@keyframes splashLoad { from{width:0} to{width:100%} }
+
+/* START STUDY ANIMATION */
+.study-enter {
+  animation: studyEnter 0.4s cubic-bezier(0.34,1.56,0.64,1) both;
+}
+@keyframes studyEnter {
+  from { opacity:0; transform: scale(0.85) translateY(30px); }
+  to   { opacity:1; transform: scale(1) translateY(0); }
+}
+
+/* CONFETTI / CELEBRATION */
+#celebration {
+  position: fixed; inset: 0; z-index: 500; pointer-events: none; overflow: hidden;
+}
+.confetti-piece {
+  position: absolute; width: 10px; height: 10px; border-radius: 2px;
+  animation: confettiFall linear both;
+}
+@keyframes confettiFall {
+  0%   { transform: translateY(-20px) rotate(0deg) scale(1); opacity: 1; }
+  80%  { opacity: 1; }
+  100% { transform: translateY(110vh) rotate(720deg) scale(0.5); opacity: 0; }
+}
+.firework {
+  position: absolute; width: 6px; height: 6px; border-radius: 50%;
+  animation: fireworkBurst 0.8s ease-out both;
+}
+@keyframes fireworkBurst {
+  0%   { transform: translate(0,0) scale(1); opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* DONE BOX ENHANCED */
+.done-box { text-align: center; padding: 30px 16px; background: var(--card); border-radius: 22px; box-shadow: var(--shadow); animation: pop 0.5s cubic-bezier(0.34,1.56,0.64,1) both; }
+.done-box h2 { font-size: 22px; font-weight: 800; margin-bottom: 8px; }
+.done-box p { color: var(--muted); margin-bottom: 20px; font-size: 14px; line-height: 1.6; }
+.done-btns { display: flex; flex-direction: column; gap: 8px; }
+.done-trophy { font-size: 64px; margin-bottom: 10px; animation: trophyPop 0.6s 0.2s cubic-bezier(0.34,1.56,0.64,1) both; opacity: 0; display: block; }
+@keyframes trophyPop { from{opacity:0;transform:scale(0.2) rotate(-30deg)} to{opacity:1;transform:scale(1) rotate(0)} }
+.done-stars { font-size: 28px; letter-spacing: 4px; margin-bottom: 12px; display: block; }
+.done-star { display: inline-block; animation: starPop 0.4s cubic-bezier(0.34,1.56,0.64,1) both; opacity: 0; }
+.done-star:nth-child(1){ animation-delay:0.4s }
+.done-star:nth-child(2){ animation-delay:0.6s }
+.done-star:nth-child(3){ animation-delay:0.8s }
+@keyframes starPop { from{opacity:0;transform:scale(0) rotate(-45deg)} to{opacity:1;transform:scale(1) rotate(0)} }
+.done-stats { display: flex; gap: 10px; justify-content: center; margin-bottom: 18px; }
+.done-stat { background: var(--bg); border-radius: 14px; padding: 10px 18px; }
+.done-stat-num { font-size: 22px; font-weight: 900; }
+.done-stat-label { font-size: 11px; color: var(--muted); font-weight: 600; margin-top: 2px; }
+
+/* DECK CARD TAP EFFECT */
+.deck-card { transition: transform 0.15s, box-shadow 0.15s; }
+.deck-card:active { transform: scale(0.96); box-shadow: 0 1px 6px rgba(0,0,0,0.06); }
+.settings-section { background: var(--card); border-radius: 16px; border: 1px solid var(--border); padding: 16px; margin-bottom: 14px; box-shadow: var(--shadow); }
+.settings-section-title { font-size: 13px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 14px; }
+.theme-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.theme-btn {
+  border-radius: 14px; padding: 12px 8px; border: 2px solid transparent;
+  cursor: pointer; text-align: center; transition: all 0.15s; font-family: var(--font);
+}
+.theme-btn.selected { border-color: var(--teal); }
+.theme-btn .theme-preview {
+  width: 100%; height: 36px; border-radius: 8px; margin-bottom: 6px;
+  display: flex; align-items: center; justify-content: center; gap: 4px;
+}
+.theme-btn .theme-name { font-size: 12px; font-weight: 700; }
+.accent-grid { display: flex; gap: 8px; flex-wrap: wrap; }
+.accent-btn {
+  width: 40px; height: 40px; border-radius: 50%; border: 3px solid transparent;
+  cursor: pointer; transition: transform 0.15s;
+}
+.accent-btn.selected { border-color: var(--text); transform: scale(1.15); }
+.font-grid { display: flex; flex-direction: column; gap: 8px; }
+.font-btn {
+  padding: 12px 14px; border-radius: 12px; border: 2px solid var(--border);
+  background: var(--bg); cursor: pointer; text-align: left; transition: all 0.15s;
+}
+.font-btn.selected { border-color: var(--teal); background: var(--teal-l); }
+.font-btn .font-name { font-size: 14px; font-weight: 700; color: var(--text); }
+.font-btn .font-sample { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.settings-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.settings-row:last-child { border-bottom: none; padding-bottom: 0; }
+.settings-row-label { font-size: 14px; font-weight: 700; }
+.settings-row-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.toggle {
+  width: 48px; height: 28px; border-radius: 14px; background: var(--border);
+  position: relative; cursor: pointer; border: none; transition: background 0.2s; flex-shrink: 0;
+}
+.toggle.on { background: var(--teal); }
+.toggle::after {
+  content: ""; position: absolute; top: 3px; left: 3px;
+  width: 22px; height: 22px; border-radius: 50%; background: #fff;
+  transition: transform 0.2s; box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+}
+.toggle.on::after { transform: translateX(20px); }
+
 /* BACKUP BAR */
 .backup-bar {
   background: var(--card); border-radius: 16px; border: 1px solid var(--border);
@@ -271,6 +383,17 @@ body {
 </head>
 <body>
 
+<!-- SPLASH SCREEN -->
+<div id="splash">
+  <div class="splash-logo">📚</div>
+  <div class="splash-title" id="splashTitle">FlashCard</div>
+  <div class="splash-sub">Học từ vựng mỗi ngày</div>
+  <div class="splash-bar"><div class="splash-bar-fill"></div></div>
+</div>
+
+<!-- CELEBRATION OVERLAY -->
+<div id="celebration"></div>
+
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 
@@ -279,6 +402,7 @@ body {
   <div class="nav-tabs">
     <button class="nav-tab active" onclick="showPage('home')">Bộ thẻ</button>
     <button class="nav-tab" onclick="showPage('manage')">Quản lý</button>
+    <button class="nav-tab" onclick="showPage('settings')">🎨</button>
   </div>
 </div>
 
@@ -312,6 +436,49 @@ body {
   <div class="sec-title">Bộ thẻ của bạn</div>
   <div class="deck-list" id="deckListManage"></div>
   <button class="add-deck-btn" onclick="openAddDeck()">+ Tạo bộ thẻ mới</button>
+</div>
+
+<!-- SETTINGS PAGE -->
+<div class="page" id="page-settings">
+  <div class="settings-section">
+    <div class="settings-section-title">🌗 Giao diện</div>
+    <div class="theme-grid" id="themeGrid"></div>
+  </div>
+  <div class="settings-section">
+    <div class="settings-section-title">🎨 Màu chủ đạo</div>
+    <div class="accent-grid" id="accentGrid"></div>
+  </div>
+  <div class="settings-section">
+    <div class="settings-section-title">🔤 Font chữ</div>
+    <div class="font-grid" id="fontGrid"></div>
+  </div>
+  <div class="settings-section">
+    <div class="settings-section-title">⚙️ Tuỳ chọn khác</div>
+    <div class="settings-row">
+      <div>
+        <div class="settings-row-label">Hoạt ảnh thẻ</div>
+        <div class="settings-row-sub">Hiệu ứng lật thẻ mượt</div>
+      </div>
+      <button class="toggle on" id="toggleAnim" onclick="toggleSetting('anim')"></button>
+    </div>
+    <div class="settings-row">
+      <div>
+        <div class="settings-row-label">Hiển thị phiên âm</div>
+        <div class="settings-row-sub">Phiên âm IPA mặt trước thẻ</div>
+      </div>
+      <button class="toggle on" id="togglePhonetic" onclick="toggleSetting('phonetic')"></button>
+    </div>
+    <div class="settings-row">
+      <div>
+        <div class="settings-row-label">Hỏi trước khi học lại</div>
+        <div class="settings-row-sub">Hỏi tiếp tục hay học từ đầu</div>
+      </div>
+      <button class="toggle on" id="toggleAskResume" onclick="toggleSetting('askResume')"></button>
+    </div>
+  </div>
+  <div style="text-align:center;padding:8px 0 16px;color:var(--muted);font-size:12px">
+    Thay đổi được lưu tự động ✓
+  </div>
 </div>
 
 <!-- STUDY PAGE -->
@@ -617,11 +784,13 @@ function showPage(p) {
   document.querySelectorAll(".nav-tab").forEach(el => el.classList.remove("active"));
   document.getElementById("page-"+p).classList.add("active");
   const tabs = document.querySelectorAll(".nav-tab");
-  if (p==="home")   tabs[0].classList.add("active");
-  if (p==="manage") tabs[1].classList.add("active");
+  if (p==="home")     tabs[0].classList.add("active");
+  if (p==="manage")   tabs[1].classList.add("active");
+  if (p==="settings") tabs[2].classList.add("active");
   currentPage = p;
-  if (p==="home")   renderHome();
-  if (p==="manage") { renderManage(); updateBackupInfo(); }
+  if (p==="home")     renderHome();
+  if (p==="manage")   { renderManage(); updateBackupInfo(); }
+  if (p==="settings") renderSettingsPage();
 }
 function goHome() { showPage("home"); }
 
@@ -863,7 +1032,7 @@ async function startStudy(deckId) {
   const c = COLORS.find(c => c.name === deck.color) || COLORS[0];
   document.getElementById("progFill").style.background = c.bg;
   document.getElementById("studyTitle").textContent = deck.emoji+" "+deck.name;
-  showPage("study"); updateStudyUI(); renderStudyCard();
+  showPage("study"); animateStudyStart(); updateStudyUI(); renderStudyCard();
 }
 
 async function saveProgress() {
@@ -905,10 +1074,31 @@ async function renderStudyCard() {
     const allDone = allWords.every(w => knowSet.has(w.id));
     if (allDone) clearProgress(activeDeckId);
     else saveProgress();
+    // Determine stars
+    const total2 = allWords.length;
+    const pct2 = total2 ? Math.round(knowSet.size / total2 * 100) : 0;
+    const stars = pct2 >= 90 ? 3 : pct2 >= 60 ? 2 : 1;
+    const starEmojis = "⭐".repeat(stars) + (stars < 3 ? "☆".repeat(3-stars) : "");
+    // Launch celebration
+    launchCelebration(allDone);
     area.innerHTML = `<div class="done-box">
-      <div style="font-size:52px;margin-bottom:12px">🎉</div>
-      <h2>Hoàn thành!</h2>
-      <p>Đã biết: <strong>${knowSet.size}</strong> từ &nbsp;·&nbsp; Cần ôn: <strong>${againSet.size}</strong> từ</p>
+      <span class="done-trophy">${allDone ? "🏆" : stars===2 ? "🥈" : "💪"}</span>
+      <span class="done-stars">${[...starEmojis].map(s=>`<span class="done-star">${s}</span>`).join("")}</span>
+      <h2>${allDone ? "Xuất sắc! Đã thuộc hết!" : "Hoàn thành buổi học!"}</h2>
+      <div class="done-stats">
+        <div class="done-stat">
+          <div class="done-stat-num" style="color:var(--teal)">${knowSet.size}</div>
+          <div class="done-stat-label">Đã biết ✓</div>
+        </div>
+        <div class="done-stat">
+          <div class="done-stat-num" style="color:var(--coral)">${againSet.size}</div>
+          <div class="done-stat-label">Cần ôn ↺</div>
+        </div>
+        <div class="done-stat">
+          <div class="done-stat-num">${pct2}%</div>
+          <div class="done-stat-label">Điểm số</div>
+        </div>
+      </div>
       <div class="done-btns">
         ${againSet.size>0?`<button class="btn btn-danger" onclick="reviewAgain()">↺ Ôn lại ${againSet.size} từ chưa nhớ</button>`:""}
         <button class="btn btn-primary" onclick="startStudy('${activeDeckId}')">▶ Học lại từ đầu</button>
@@ -1030,8 +1220,207 @@ function updateBackupInfo() {
   }
 }
 
+// ---- SETTINGS ----
+const THEMES = [
+  { id:"light",  name:"Sáng",    bg:"#F2F0EC", card:"#FFFFFF", text:"#1C1C1E", muted:"#6B6B6B" },
+  { id:"dark",   name:"Tối",     bg:"#1C1C1E", card:"#2C2C2E", text:"#F2F0EC", muted:"#8E8E93" },
+  { id:"cream",  name:"Kem",     bg:"#FFF8EE", card:"#FFFDF7", text:"#2D1F0E", muted:"#8B7355" },
+  { id:"navy",   name:"Navy",    bg:"#0D1B2A", card:"#1B2A3B", text:"#E8F4FD", muted:"#7FA8C9" },
+  { id:"forest", name:"Rừng",    bg:"#1A2B1A", card:"#243324", text:"#E8F5E8", muted:"#7FAF7F" },
+  { id:"rose",   name:"Hồng",    bg:"#FDF0F5", card:"#FFFFFF", text:"#2D1020", muted:"#A06080" },
+];
+const ACCENTS = [
+  { id:"teal",   bg:"#1D9E75", light:"#E1F5EE", dark:"#085041" },
+  { id:"purple", bg:"#7F77DD", light:"#EEEDFE", dark:"#3C3489" },
+  { id:"blue",   bg:"#378ADD", light:"#E6F1FB", dark:"#0C447C" },
+  { id:"amber",  bg:"#E0920A", light:"#FAEEDA", dark:"#633806" },
+  { id:"coral",  bg:"#D85A30", light:"#FAECE7", dark:"#993C1D" },
+  { id:"pink",   bg:"#D4537E", light:"#FBEAF0", dark:"#72243E" },
+  { id:"green",  bg:"#639922", light:"#EAF3DE", dark:"#3B6D11" },
+  { id:"indigo", bg:"#4F46E5", light:"#EEF2FF", dark:"#2D298A" },
+];
+const FONTS = [
+  { id:"nunito",    name:"Nunito",       sample:"The quick brown fox", css:"'Nunito', sans-serif" },
+  { id:"system",    name:"Mặc định",     sample:"The quick brown fox", css:"-apple-system, BlinkMacSystemFont, sans-serif" },
+  { id:"serif",     name:"Serif",        sample:"The quick brown fox", css:"Georgia, 'Times New Roman', serif" },
+  { id:"mono",      name:"Monospace",    sample:"The quick brown fox", css:"'Courier New', Courier, monospace" },
+];
+
+function loadSettings() {
+  try { return JSON.parse(localStorage.getItem("appSettings") || "{}"); } catch(e) { return {}; }
+}
+function saveSettings(s) { localStorage.setItem("appSettings", JSON.stringify(s)); }
+
+function applySettings() {
+  const s = loadSettings();
+  const theme = THEMES.find(t => t.id === (s.theme || "light")) || THEMES[0];
+  const accent = ACCENTS.find(a => a.id === (s.accent || "teal")) || ACCENTS[0];
+  const font = FONTS.find(f => f.id === (s.font || "nunito")) || FONTS[0];
+  const root = document.documentElement;
+  root.style.setProperty("--bg",    theme.bg);
+  root.style.setProperty("--card",  theme.card);
+  root.style.setProperty("--text",  theme.text);
+  root.style.setProperty("--muted", theme.muted);
+  root.style.setProperty("--teal",   accent.bg);
+  root.style.setProperty("--teal-l", accent.light);
+  root.style.setProperty("--teal-d", accent.dark);
+  root.style.setProperty("--font", font.css);
+  document.body.style.fontFamily = font.css;
+  // toggles
+  ["anim","phonetic","askResume"].forEach(k => {
+    const val = s[k] !== false; // default true
+    const el = document.getElementById("toggle"+k.charAt(0).toUpperCase()+k.slice(1));
+    if (el) el.classList.toggle("on", val);
+  });
+}
+
+function renderSettingsPage() {
+  const s = loadSettings();
+  // THEMES
+  document.getElementById("themeGrid").innerHTML = THEMES.map(t =>
+    `<button class="theme-btn${(s.theme||"light")===t.id?" selected":""}" onclick="setTheme('${t.id}')" style="background:${t.bg}">
+      <div class="theme-preview" style="background:${t.card}">
+        <div style="width:40%;height:12px;border-radius:4px;background:${t.text};opacity:0.7"></div>
+        <div style="width:20%;height:12px;border-radius:4px;background:#1D9E75"></div>
+      </div>
+      <div class="theme-name" style="color:${t.text}">${t.name}</div>
+    </button>`
+  ).join("");
+  // ACCENTS
+  document.getElementById("accentGrid").innerHTML = ACCENTS.map(a =>
+    `<button class="accent-btn${(s.accent||"teal")===a.id?" selected":""}" style="background:${a.bg}" onclick="setAccent('${a.id}')"></button>`
+  ).join("");
+  // FONTS
+  document.getElementById("fontGrid").innerHTML = FONTS.map(f =>
+    `<button class="font-btn${(s.font||"nunito")===f.id?" selected":""}" onclick="setFont('${f.id}')">
+      <div class="font-name" style="font-family:${f.css}">${f.name}</div>
+      <div class="font-sample" style="font-family:${f.css}">${f.sample}</div>
+    </button>`
+  ).join("");
+  // toggles
+  ["anim","phonetic","askResume"].forEach(k => {
+    const val = s[k] !== false;
+    const el = document.getElementById("toggle"+k.charAt(0).toUpperCase()+k.slice(1));
+    if (el) el.classList.toggle("on", val);
+  });
+}
+
+function setTheme(id) {
+  const s = loadSettings(); s.theme = id; saveSettings(s);
+  applySettings(); renderSettingsPage(); showToast("✓ Đã đổi giao diện");
+}
+function setAccent(id) {
+  const s = loadSettings(); s.accent = id; saveSettings(s);
+  applySettings(); renderSettingsPage(); showToast("✓ Đã đổi màu chủ đạo");
+}
+function setFont(id) {
+  const s = loadSettings(); s.font = id; saveSettings(s);
+  applySettings(); renderSettingsPage(); showToast("✓ Đã đổi font chữ");
+}
+function toggleSetting(key) {
+  const s = loadSettings();
+  s[key] = s[key] === false ? true : false;
+  saveSettings(s); applySettings(); showToast("✓ Đã lưu");
+}
+
+// ---- SPLASH SCREEN ----
+function initSplash() {
+  const s = loadSettings();
+  const accentId = s.accent || "teal";
+  const accentColors = {
+    teal:"#1D9E75", purple:"#7F77DD", blue:"#378ADD",
+    amber:"#E0920A", coral:"#D85A30", pink:"#D4537E",
+    green:"#639922", indigo:"#4F46E5"
+  };
+  const splash = document.getElementById("splash");
+  splash.style.background = accentColors[accentId] || "#1D9E75";
+  const appTitle = document.querySelector("meta[name='apple-mobile-web-app-title']");
+  if (appTitle) document.getElementById("splashTitle").textContent = appTitle.content;
+  setTimeout(() => {
+    splash.classList.add("hide");
+    setTimeout(() => { splash.style.display = "none"; }, 500);
+  }, 1800);
+}
+
+// ---- CONFETTI & FIREWORKS ----
+function launchCelebration(allKnown) {
+  const el = document.getElementById("celebration");
+  el.innerHTML = "";
+  const colors = ["#1D9E75","#7F77DD","#378ADD","#D4537E","#E0920A","#D85A30","#639922","#fff"];
+  // Confetti
+  for (let i = 0; i < 80; i++) {
+    const piece = document.createElement("div");
+    piece.className = "confetti-piece";
+    const color = colors[Math.floor(Math.random() * colors.length)];
+    const size = 6 + Math.random() * 10;
+    const x = Math.random() * 100;
+    const dur = 1.5 + Math.random() * 2;
+    const delay = Math.random() * 1.2;
+    const shape = Math.random() > 0.5 ? "50%" : (Math.random() > 0.5 ? "2px" : "50% 0");
+    piece.style.cssText = `
+      left:${x}vw; top:-20px;
+      width:${size}px; height:${size}px;
+      background:${color}; border-radius:${shape};
+      animation-duration:${dur}s; animation-delay:${delay}s;
+    `;
+    el.appendChild(piece);
+  }
+  // Fireworks (burst from random points)
+  if (allKnown) {
+    for (let b = 0; b < 5; b++) {
+      const bx = 20 + Math.random() * 60;
+      const by = 15 + Math.random() * 50;
+      setTimeout(() => launchBurst(el, bx, by, colors), b * 300);
+    }
+  }
+  // Clear after 4s
+  setTimeout(() => { el.innerHTML = ""; }, 4000);
+}
+
+function launchBurst(el, cx, cy, colors) {
+  for (let i = 0; i < 16; i++) {
+    const dot = document.createElement("div");
+    dot.className = "firework";
+    const angle = (i / 16) * Math.PI * 2;
+    const dist = 40 + Math.random() * 60;
+    const tx = Math.cos(angle) * dist;
+    const ty = Math.sin(angle) * dist;
+    const color = colors[Math.floor(Math.random() * colors.length)];
+    dot.style.cssText = `
+      left:${cx}vw; top:${cy}vh;
+      background:${color};
+      width:${4 + Math.random()*6}px; height:${4 + Math.random()*6}px;
+    `;
+    dot.style.setProperty("--tx", tx+"px");
+    dot.style.setProperty("--ty", ty+"px");
+    dot.style.animation = `fireworkBurst 0.8s ${Math.random()*0.2}s ease-out both`;
+    dot.style.transform = `translate(${tx}px, ${ty}px)`;
+    el.appendChild(dot);
+  }
+}
+
+// ---- STUDY START ANIMATION ----
+function animateStudyStart() {
+  const page = document.getElementById("page-study");
+  page.style.opacity = "0";
+  page.style.transform = "scale(0.94) translateY(20px)";
+  page.style.transition = "all 0.4s cubic-bezier(0.34,1.2,0.64,1)";
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      page.style.opacity = "1";
+      page.style.transform = "scale(1) translateY(0)";
+    });
+  });
+  setTimeout(() => { page.style.transition = ""; }, 400);
+}
+
 // INIT
-(async () => { await seedDefault(); renderHome(); })();
+(async () => {
+  applySettings();
+  initSplash();
+  await seedDefault();
+  renderHome();
+})();
 </script>
 </body>
 </html>
