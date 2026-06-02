@@ -1,448 +1,1037 @@
-/* ============================================================
-   KOIF – app.js  |  IndexedDB edition
-   ============================================================ */
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="FlashCard">
+<meta name="theme-color" content="#1D9E75">
+<title>FlashCard – Học Từ Vựng</title>
 
-// ── INDEXEDDB SETUP ────────────────────────────────────────
-const DB_NAME    = 'koif_db';
-const DB_VERSION = 1;
-let db = null;
+<!-- PWA Icon inline SVG as data URI -->
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%231D9E75'/%3E%3Ctext y='.9em' font-size='72' x='12'%3E📚%3C/text%3E%3C/svg%3E">
+
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --bg: #F2F0EC; --card: #FFFFFF; --text: #1C1C1E; --muted: #6B6B6B;
+  --border: rgba(0,0,0,0.09);
+  --teal: #1D9E75; --teal-l: #E1F5EE; --teal-d: #085041;
+  --purple: #7F77DD; --purple-l: #EEEDFE; --purple-d: #3C3489;
+  --blue: #378ADD; --blue-l: #E6F1FB; --blue-d: #0C447C;
+  --amber: #BA7517; --amber-l: #FAEEDA; --amber-d: #633806;
+  --coral: #D85A30; --coral-l: #FAECE7; --coral-d: #993C1D;
+  --pink: #D4537E; --pink-l: #FBEAF0; --pink-d: #72243E;
+  --green: #639922; --green-l: #EAF3DE; --green-d: #3B6D11;
+  --r: 16px;
+  --font: 'Nunito', -apple-system, BlinkMacSystemFont, sans-serif;
+  --shadow: 0 2px 16px rgba(0,0,0,0.08);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body {
+  font-family: var(--font); background: var(--bg); color: var(--text);
+  min-height: 100vh; min-height: -webkit-fill-available;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* NAV */
+.nav {
+  background: var(--card); border-bottom: 1px solid var(--border);
+  padding: 12px 16px;
+  padding-top: calc(12px + env(safe-area-inset-top, 0px));
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 100;
+}
+.nav-logo { font-size: 17px; font-weight: 800; }
+.nav-logo span { color: var(--teal); }
+.nav-tabs { display: flex; gap: 4px; }
+.nav-tab {
+  font-family: var(--font); font-size: 13px; font-weight: 700;
+  padding: 6px 14px; border-radius: 20px; border: 1.5px solid var(--border);
+  background: transparent; color: var(--muted); cursor: pointer;
+}
+.nav-tab.active { background: var(--teal); border-color: var(--teal); color: #fff; }
+
+/* PAGE */
+.page { display: none; padding: 16px; max-width: 640px; margin: 0 auto; }
+.page.active { display: block; }
+.sec-title { font-size: 13px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 10px; }
+
+/* INSTALL BANNER */
+.install-banner {
+  background: linear-gradient(135deg, #1D9E75, #378ADD);
+  border-radius: 16px; padding: 14px 16px; margin-bottom: 16px;
+  display: flex; align-items: center; gap: 12px; color: #fff;
+}
+.install-banner-icon { font-size: 28px; flex-shrink: 0; }
+.install-banner-text { flex: 1; }
+.install-banner-text strong { font-size: 14px; font-weight: 800; display: block; }
+.install-banner-text small { font-size: 12px; opacity: 0.85; line-height: 1.4; }
+.install-close {
+  background: rgba(255,255,255,0.2); border: none; color: #fff;
+  width: 28px; height: 28px; border-radius: 50%; cursor: pointer;
+  font-size: 14px; flex-shrink: 0; font-family: var(--font);
+}
+
+/* DECK LIST */
+.deck-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+.deck-card {
+  background: var(--card); border-radius: var(--r); border: 1px solid var(--border);
+  padding: 14px 16px; display: flex; align-items: center; gap: 12px; cursor: pointer;
+  box-shadow: var(--shadow); transition: transform 0.15s;
+}
+.deck-card:active { transform: scale(0.98); }
+.deck-icon {
+  width: 48px; height: 48px; border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px; flex-shrink: 0;
+}
+.deck-info { flex: 1; min-width: 0; }
+.deck-name { font-size: 15px; font-weight: 700; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.deck-meta { font-size: 12px; color: var(--muted); }
+.deck-arrow { color: var(--muted); font-size: 20px; }
+.deck-actions { display: flex; gap: 6px; }
+.icon-btn {
+  width: 34px; height: 34px; border-radius: 9px; border: 1px solid var(--border);
+  background: var(--bg); cursor: pointer; font-size: 15px;
+  display: flex; align-items: center; justify-content: center; font-family: var(--font);
+}
+
+/* ADD DECK BTN */
+.add-deck-btn {
+  width: 100%; padding: 14px; border-radius: var(--r);
+  border: 2px dashed var(--border); background: transparent;
+  font-family: var(--font); font-size: 14px; font-weight: 700;
+  color: var(--muted); cursor: pointer; transition: all 0.15s;
+}
+.add-deck-btn:hover { border-color: var(--teal); color: var(--teal); }
+
+/* MODAL */
+.overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.45); z-index: 200;
+  align-items: flex-end; justify-content: center;
+}
+.overlay.open { display: flex; }
+.modal {
+  background: var(--card); border-radius: 24px 24px 0 0;
+  padding: 20px 20px calc(20px + env(safe-area-inset-bottom, 0px));
+  width: 100%; max-width: 640px; max-height: 92vh; overflow-y: auto;
+}
+.modal-handle { width: 36px; height: 4px; background: var(--border); border-radius: 4px; margin: 0 auto 16px; }
+.modal-title { font-size: 17px; font-weight: 800; margin-bottom: 16px; }
+.form-group { margin-bottom: 14px; }
+.form-label { font-size: 13px; font-weight: 700; color: var(--muted); margin-bottom: 6px; display: block; }
+.form-input {
+  width: 100%; padding: 12px 14px; border-radius: 12px;
+  border: 1.5px solid var(--border); background: var(--bg);
+  font-family: var(--font); font-size: 15px; color: var(--text);
+  outline: none; transition: border-color 0.15s;
+}
+.form-input:focus { border-color: var(--teal); }
+.color-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.color-dot {
+  width: 34px; height: 34px; border-radius: 50%; cursor: pointer;
+  border: 3px solid transparent; transition: transform 0.15s;
+}
+.color-dot.selected { border-color: var(--text); transform: scale(1.15); }
+.modal-btns { display: flex; gap: 10px; margin-top: 8px; }
+.btn {
+  flex: 1; padding: 14px; border-radius: 14px; font-family: var(--font);
+  font-size: 15px; font-weight: 700; cursor: pointer; border: none;
+  transition: opacity 0.15s;
+}
+.btn:active { opacity: 0.75; }
+.btn-primary { background: var(--teal); color: #fff; }
+.btn-secondary { background: var(--bg); color: var(--muted); border: 1.5px solid var(--border); }
+.btn-danger { background: var(--coral-l); color: var(--coral-d); }
+
+/* IMAGE UPLOAD */
+.img-upload-area {
+  border: 2px dashed var(--border); border-radius: 12px; padding: 16px;
+  text-align: center; cursor: pointer; transition: all 0.15s; position: relative; overflow: hidden;
+}
+.img-upload-area:hover, .img-upload-area:active { border-color: var(--teal); background: var(--teal-l); }
+.img-preview {
+  width: 100%; max-height: 180px; object-fit: cover;
+  border-radius: 8px; display: none;
+}
+.img-upload-hint { font-size: 13px; color: var(--muted); font-weight: 600; }
+.img-upload-hint span { font-size: 28px; display: block; margin-bottom: 6px; }
+.img-clear-btn {
+  position: absolute; top: 8px; right: 8px; width: 28px; height: 28px;
+  background: rgba(0,0,0,0.55); color: #fff; border: none; border-radius: 50%;
+  cursor: pointer; font-size: 14px; display: none; align-items: center; justify-content: center;
+  z-index: 2;
+}
+#imgFile { display: none; }
+
+/* WORD LIST */
+.word-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+.word-item {
+  background: var(--card); border-radius: 12px; border: 1px solid var(--border);
+  padding: 10px 14px; display: flex; align-items: center; gap: 10px;
+}
+.word-item-thumb {
+  width: 46px; height: 46px; border-radius: 10px; flex-shrink: 0;
+  background: var(--bg); display: flex; align-items: center;
+  justify-content: center; font-size: 22px; overflow: hidden;
+}
+.word-item-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.word-item-info { flex: 1; min-width: 0; }
+.word-item-en { font-size: 14px; font-weight: 700; }
+.word-item-vn { font-size: 12px; color: var(--muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.empty-state { text-align: center; padding: 32px 16px; color: var(--muted); font-size: 14px; }
+.empty-icon { font-size: 44px; margin-bottom: 10px; }
+
+/* STUDY PAGE */
+.study-header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+.back-btn {
+  width: 38px; height: 38px; border-radius: 11px; border: 1.5px solid var(--border);
+  background: var(--card); cursor: pointer; font-size: 18px;
+  display: flex; align-items: center; justify-content: center;
+}
+.study-title { font-size: 16px; font-weight: 800; flex: 1; }
+.prog-wrap { margin-bottom: 14px; }
+.prog-meta { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+.prog-track { height: 6px; background: rgba(0,0,0,0.07); border-radius: 10px; }
+.prog-fill { height: 100%; border-radius: 10px; transition: width 0.4s ease; }
+.score-row { display: flex; gap: 8px; margin-bottom: 14px; }
+.score-pill { font-size: 12px; font-weight: 700; padding: 6px 12px; border-radius: 20px; }
+
+/* FLASHCARD */
+.card-stage { perspective: 1000px; height: 270px; cursor: pointer; margin-bottom: 12px; user-select: none; }
+.card-inner { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform 0.5s cubic-bezier(0.4,0,0.2,1); }
+.card-inner.flipped { transform: rotateY(180deg); }
+.card-face {
+  position: absolute; inset: 0; border-radius: 22px;
+  backface-visibility: hidden; -webkit-backface-visibility: hidden;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 20px; box-shadow: var(--shadow); overflow: hidden;
+}
+.card-front { background: var(--card); }
+.card-back { transform: rotateY(180deg); }
+.card-badge { position: absolute; top: 14px; left: 14px; font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; padding: 3px 10px; border-radius: 20px; }
+.card-num { position: absolute; top: 14px; right: 14px; font-size: 12px; color: var(--muted); font-weight: 600; }
+.card-img { width: 80px; height: 80px; border-radius: 14px; object-fit: cover; margin-bottom: 10px; box-shadow: 0 3px 10px rgba(0,0,0,0.13); }
+.card-word { font-size: 30px; font-weight: 800; text-align: center; margin-bottom: 6px; line-height: 1.2; }
+.card-ph { font-size: 13px; color: var(--muted); text-align: center; }
+.card-hint { position: absolute; bottom: 12px; font-size: 11px; color: var(--muted); }
+.card-vn { font-size: 23px; font-weight: 800; text-align: center; margin-bottom: 8px; line-height: 1.3; }
+.card-ex { font-size: 13px; text-align: center; line-height: 1.55; font-style: italic; opacity: 0.7; }
+
+.flip-wrap { display: flex; justify-content: center; margin-bottom: 10px; }
+.flip-btn { font-family: var(--font); font-size: 14px; font-weight: 700; background: var(--card); border: 1.5px solid var(--border); color: var(--muted); padding: 11px 32px; border-radius: 14px; cursor: pointer; }
+.action-row { display: flex; gap: 10px; margin-bottom: 16px; opacity: 0; pointer-events: none; transform: translateY(6px); transition: all 0.2s; }
+.action-row.vis { opacity: 1; pointer-events: all; transform: translateY(0); }
+.act-btn { flex: 1; padding: 14px; border-radius: 14px; font-family: var(--font); font-size: 15px; font-weight: 700; border: none; cursor: pointer; }
+.btn-again { background: var(--coral-l); color: var(--coral-d); }
+.btn-know { background: var(--teal-l); color: var(--teal-d); }
+
+.done-box { text-align: center; padding: 30px 16px; background: var(--card); border-radius: 22px; box-shadow: var(--shadow); }
+.done-box h2 { font-size: 22px; font-weight: 800; margin-bottom: 8px; }
+.done-box p { color: var(--muted); margin-bottom: 20px; font-size: 14px; line-height: 1.6; }
+.done-btns { display: flex; flex-direction: column; gap: 8px; }
+
+@keyframes pop { from { opacity:0; transform:scale(0.95) translateY(8px); } to { opacity:1; transform:scale(1) translateY(0); } }
+.card-stage { animation: pop 0.3s ease both; }
+
+/* BACKUP BAR */
+.backup-bar {
+  background: var(--card); border-radius: 16px; border: 1px solid var(--border);
+  padding: 14px 16px; margin-bottom: 16px; box-shadow: var(--shadow);
+}
+.backup-bar-title { font-size: 13px; font-weight: 800; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+.backup-btns { display: flex; gap: 8px; }
+.backup-btn {
+  flex: 1; padding: 11px 8px; border-radius: 12px; font-family: var(--font);
+  font-size: 13px; font-weight: 700; cursor: pointer; border: none;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  transition: opacity 0.15s;
+}
+.backup-btn:active { opacity: 0.7; }
+.backup-export { background: var(--teal-l); color: var(--teal-d); }
+.backup-import { background: var(--blue-l); color: var(--blue-d); }
+.backup-info { font-size: 11px; color: var(--muted); margin-top: 8px; line-height: 1.5; }
+#importFile { display: none; }
+
+/* TOAST */
+.toast {
+  position: fixed; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: #1C1C1E; color: #fff; padding: 10px 20px; border-radius: 24px;
+  font-size: 13px; font-weight: 700; opacity: 0; transition: all 0.3s; z-index: 999;
+  white-space: nowrap; pointer-events: none;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<div class="nav">
+  <div class="nav-logo">Flash<span>Card</span> 📚</div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showPage('home')">Bộ thẻ</button>
+    <button class="nav-tab" onclick="showPage('manage')">Quản lý</button>
+  </div>
+</div>
+
+<!-- HOME PAGE -->
+<div class="page active" id="page-home">
+  <div id="installBanner" style="display:none">
+    <div class="install-banner">
+      <div class="install-banner-icon">📲</div>
+      <div class="install-banner-text">
+        <strong>Cài app lên màn hình chính!</strong>
+        <small id="installHint"></small>
+      </div>
+      <button class="install-close" onclick="dismissInstall()">✕</button>
+    </div>
+  </div>
+  <div class="sec-title">Chọn bộ thẻ để học</div>
+  <div class="deck-list" id="deckListHome"></div>
+</div>
+
+<!-- MANAGE PAGE -->
+<div class="page" id="page-manage">
+  <div class="backup-bar">
+    <div class="backup-bar-title">☁️ Sao lưu dữ liệu</div>
+    <div class="backup-btns">
+      <button class="backup-btn backup-export" onclick="exportBackup()">⬇️ Xuất file backup</button>
+      <button class="backup-btn backup-import" onclick="document.getElementById('importFile').click()">⬆️ Nhập file backup</button>
+    </div>
+    <div class="backup-info" id="backupInfo">Chưa có thông tin backup</div>
+    <input type="file" id="importFile" accept=".json" onchange="importBackup(event)">
+  </div>
+  <div class="sec-title">Bộ thẻ của bạn</div>
+  <div class="deck-list" id="deckListManage"></div>
+  <button class="add-deck-btn" onclick="openAddDeck()">+ Tạo bộ thẻ mới</button>
+</div>
+
+<!-- STUDY PAGE -->
+<div class="page" id="page-study">
+  <div class="study-header">
+    <button class="back-btn" onclick="goHome()">←</button>
+    <div class="study-title" id="studyTitle"></div>
+  </div>
+  <div class="prog-wrap">
+    <div class="prog-meta"><span id="progLabel">Thẻ 1/1</span><span id="progPct">0%</span></div>
+    <div class="prog-track"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
+  </div>
+  <div class="score-row">
+    <div class="score-pill" style="background:var(--teal-l);color:var(--teal-d)">✓ <span id="sKnow">0</span> biết</div>
+    <div class="score-pill" style="background:var(--coral-l);color:var(--coral-d)">↺ <span id="sAgain">0</span> ôn</div>
+    <div class="score-pill" style="background:var(--bg);color:var(--muted)"><span id="sLeft">0</span> còn</div>
+  </div>
+  <div id="studyArea"></div>
+  <div class="flip-wrap" id="flipWrap">
+    <button class="flip-btn" onclick="flipCard()">↕ Nhấn để xem nghĩa</button>
+  </div>
+  <div class="action-row" id="actionRow">
+    <button class="act-btn btn-again" onclick="markAgain()">↺ Ôn lại</button>
+    <button class="act-btn btn-know" onclick="markKnow()">✓ Đã biết</button>
+  </div>
+</div>
+
+<!-- DECK MODAL -->
+<div class="overlay" id="deckModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="deckModalTitle">Tạo bộ thẻ mới</div>
+    <div class="form-group">
+      <label class="form-label">Tên bộ thẻ</label>
+      <input class="form-input" id="deckName" placeholder="VD: Từ vựng y tế, Tiếng Anh IT...">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Biểu tượng</label>
+      <input class="form-input" id="deckEmoji" placeholder="Nhập emoji VD: 🏥 💻 🌿" maxlength="4">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Màu sắc</label>
+      <div class="color-row" id="colorRow"></div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" onclick="closeModal('deckModal')">Huỷ</button>
+      <button class="btn btn-primary" onclick="saveDeck()">Lưu</button>
+    </div>
+  </div>
+</div>
+
+<!-- WORD MODAL -->
+<div class="overlay" id="wordModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="wordModalTitle">Thêm từ mới</div>
+    <div class="form-group">
+      <label class="form-label">Từ tiếng Anh *</label>
+      <input class="form-input" id="wordEn" placeholder="VD: Calibration">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Phiên âm</label>
+      <input class="form-input" id="wordPh" placeholder="VD: /ˌkælɪˈbreɪʃən/">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Nghĩa tiếng Việt *</label>
+      <input class="form-input" id="wordVn" placeholder="VD: Hiệu chuẩn">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Câu ví dụ</label>
+      <input class="form-input" id="wordEx" placeholder="VD: Annual calibration is required.">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Hình ảnh (tuỳ chọn)</label>
+      <div class="img-upload-area" id="imgUploadArea" onclick="document.getElementById('imgFile').click()">
+        <img class="img-preview" id="imgPreview" alt="">
+        <button class="img-clear-btn" id="imgClearBtn" onclick="event.stopPropagation();clearImage()">✕</button>
+        <div class="img-upload-hint" id="imgHint">
+          <span>🖼️</span>Chọn ảnh từ thiết bị
+        </div>
+      </div>
+      <input type="file" id="imgFile" accept="image/*" onchange="handleImageUpload(event)">
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" onclick="closeModal('wordModal')">Huỷ</button>
+      <button class="btn btn-primary" onclick="saveWord()">Lưu</button>
+    </div>
+  </div>
+</div>
+
+<!-- DECK DETAIL MODAL -->
+<div class="overlay" id="detailModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div class="modal-title" id="detailTitle" style="margin:0"></div>
+      <button class="icon-btn" onclick="openAddWord()" style="font-size:18px;font-weight:800">＋</button>
+    </div>
+    <div id="detailWordList"></div>
+    <div class="modal-btns" style="margin-top:10px">
+      <button class="btn btn-danger" onclick="confirmDeleteDeck()">🗑 Xoá bộ thẻ</button>
+      <button class="btn btn-secondary" onclick="closeModal('detailModal')">Đóng</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM MODAL -->
+<div class="overlay" id="confirmModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="confirmTitle">Xác nhận</div>
+    <p id="confirmMsg" style="color:var(--muted);font-size:14px;margin-bottom:18px;line-height:1.6"></p>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" onclick="closeModal('confirmModal')">Huỷ</button>
+      <button class="btn btn-danger" id="confirmOkBtn">Xoá</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const COLORS = [
+  { name:"teal",   bg:"#1D9E75", light:"#E1F5EE", dark:"#085041" },
+  { name:"purple", bg:"#7F77DD", light:"#EEEDFE", dark:"#3C3489" },
+  { name:"blue",   bg:"#378ADD", light:"#E6F1FB", dark:"#0C447C" },
+  { name:"amber",  bg:"#BA7517", light:"#FAEEDA", dark:"#633806" },
+  { name:"coral",  bg:"#D85A30", light:"#FAECE7", dark:"#993C1D" },
+  { name:"pink",   bg:"#D4537E", light:"#FBEAF0", dark:"#72243E" },
+  { name:"green",  bg:"#639922", light:"#EAF3DE", dark:"#3B6D11" },
+];
+
+// ---- DATA (IndexedDB for large image data, localStorage fallback) ----
+const DB_NAME = "flashcardDB", DB_VER = 1, STORE = "appData";
 
 function openDB() {
-  return new Promise((resolve, reject) => {
-    const req = indexedDB.open(DB_NAME, DB_VERSION);
-    req.onupgradeneeded = e => {
-      const d = e.target.result;
-      if (!d.objectStoreNames.contains('decks')) {
-        d.createObjectStore('decks', { keyPath: 'id' });
-      }
-      if (!d.objectStoreNames.contains('stats')) {
-        d.createObjectStore('stats', { keyPath: 'deckId' });
-      }
-      if (!d.objectStoreNames.contains('session')) {
-        d.createObjectStore('session', { keyPath: 'key' });
-      }
+  return new Promise((res, rej) => {
+    const req = indexedDB.open(DB_NAME, DB_VER);
+    req.onupgradeneeded = e => e.target.result.createObjectStore(STORE);
+    req.onsuccess = e => res(e.target.result);
+    req.onerror = () => rej(req.error);
+  });
+}
+async function dbGet(key) {
+  try {
+    const db = await openDB();
+    return new Promise((res, rej) => {
+      const tx = db.transaction(STORE, "readonly");
+      const req = tx.objectStore(STORE).get(key);
+      req.onsuccess = () => res(req.result);
+      req.onerror = () => rej(req.error);
+    });
+  } catch(e) { return null; }
+}
+async function dbSet(key, val) {
+  try {
+    const db = await openDB();
+    return new Promise((res, rej) => {
+      const tx = db.transaction(STORE, "readwrite");
+      tx.objectStore(STORE).put(val, key);
+      tx.oncomplete = () => res(true);
+      tx.onerror = () => rej(tx.error);
+    });
+  } catch(e) { return false; }
+}
+
+async function loadData() {
+  try {
+    const d = await dbGet("fcData");
+    if (d) return d;
+  } catch(e) {}
+  // fallback localStorage
+  try {
+    const s = localStorage.getItem("fcData");
+    if (s) return JSON.parse(s);
+  } catch(e) {}
+  return { decks: [], words: {} };
+}
+async function saveData(d) {
+  await dbSet("fcData", d);
+  try { localStorage.setItem("fcData", JSON.stringify(d)); } catch(e) {}
+  showToast("✓ Đã lưu");
+}
+
+// TOAST
+let toastTimer;
+function showToast(msg) {
+  const el = document.getElementById("toast");
+  el.textContent = msg; el.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove("show"), 1800);
+}
+
+// SEED
+async function seedDefault() {
+  const d = await loadData();
+  if (d.decks.length === 0) {
+    const id = "deck_default";
+    d.decks.push({ id, name:"Hiệu Chuẩn & Quan Trắc", emoji:"⚙️", color:"teal" });
+    d.words[id] = [
+      { id:"w1", en:"Calibration",  ph:"/ˌkælɪˈbreɪʃən/",  vn:"Hiệu chuẩn",          ex:"Annual calibration is required.", img:null },
+      { id:"w2", en:"Accuracy",     ph:"/ˈækjərəsi/",       vn:"Độ chính xác",         ex:"This device has ±0.1% accuracy.", img:null },
+      { id:"w3", en:"Uncertainty",  ph:"/ʌnˈsɜːtənti/",    vn:"Độ không đảm bảo đo", ex:"Report the measurement uncertainty.", img:null },
+      { id:"w4", en:"Traceability", ph:"/ˌtreɪsəˈbɪlɪti/", vn:"Liên kết chuẩn",      ex:"Traceability to national standards.", img:null },
+      { id:"w5", en:"Tolerance",    ph:"/ˈtɒlərəns/",       vn:"Dung sai",             ex:"The reading is within tolerance.", img:null },
+      { id:"w6", en:"Drift",        ph:"/drɪft/",           vn:"Độ trôi",              ex:"Sensor drift occurs over time.", img:null },
+      { id:"w7", en:"Sensor",       ph:"/ˈsɛnsər/",         vn:"Cảm biến",             ex:"Install the temperature sensor first.", img:null },
+      { id:"w8", en:"Humidity",     ph:"/hjuːˈmɪdɪti/",    vn:"Độ ẩm",                ex:"Humidity is measured in percent.", img:null },
+    ];
+    await saveData(d);
+  }
+}
+
+// PWA INSTALL BANNER
+let deferredPrompt = null;
+window.addEventListener("beforeinstallprompt", e => {
+  e.preventDefault(); deferredPrompt = e; showInstallBanner();
+});
+function showInstallBanner() {
+  if (localStorage.getItem("installDismissed")) return;
+  const banner = document.getElementById("installBanner");
+  const hint = document.getElementById("installHint");
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  if (isIOS) {
+    hint.textContent = 'Nhấn nút Chia sẻ ⬆ → "Thêm vào Màn hình chính"';
+    banner.style.display = "block";
+  } else if (deferredPrompt) {
+    hint.textContent = "Cài app để dùng offline, không cần mở trình duyệt";
+    banner.style.display = "block";
+    banner.querySelector(".install-banner").style.cursor = "pointer";
+    banner.querySelector(".install-banner").onclick = async (e) => {
+      if (e.target.classList.contains("install-close")) return;
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === "accepted") dismissInstall();
     };
-    req.onsuccess = e => { db = e.target.result; resolve(db); };
-    req.onerror   = e => reject(e.target.error);
-  });
+  } else {
+    // iOS/Safari fallback
+    const isIOS2 = /safari/i.test(navigator.userAgent) && !/chrome/i.test(navigator.userAgent);
+    if (isIOS2) {
+      hint.textContent = 'Nhấn nút Chia sẻ ⬆ → "Thêm vào Màn hình chính"';
+      banner.style.display = "block";
+    }
+  }
+}
+function dismissInstall() {
+  localStorage.setItem("installDismissed","1");
+  document.getElementById("installBanner").style.display = "none";
 }
 
-function tx(storeName, mode='readonly') {
-  return db.transaction(storeName, mode).objectStore(storeName);
+// STATE
+let currentPage = "home";
+let editingDeckId = null, selectedColor = "teal";
+let activeDeckId = null, editingWordId = null;
+let studyQueue = [], studyIdx = 0, flipped = false;
+let knowSet = new Set(), againSet = new Set();
+let currentImageData = null;
+
+// IMAGE
+function handleImageUpload(e) {
+  const file = e.target.files[0]; if (!file) return;
+  // Resize image before storing
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      const MAX = 400;
+      let w = img.width, h = img.height;
+      if (w > MAX || h > MAX) {
+        if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+        else { w = Math.round(w * MAX / h); h = MAX; }
+      }
+      canvas.width = w; canvas.height = h;
+      canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+      currentImageData = canvas.toDataURL("image/jpeg", 0.75);
+      document.getElementById("imgPreview").src = currentImageData;
+      document.getElementById("imgPreview").style.display = "block";
+      document.getElementById("imgHint").style.display = "none";
+      document.getElementById("imgClearBtn").style.display = "flex";
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
 }
-function dbGetAll(store) {
-  return new Promise((res,rej)=>{ const r=tx(store).getAll(); r.onsuccess=e=>res(e.target.result); r.onerror=e=>rej(e.target.error); });
+function clearImage() {
+  currentImageData = null;
+  document.getElementById("imgPreview").style.display = "none";
+  document.getElementById("imgHint").style.display = "block";
+  document.getElementById("imgClearBtn").style.display = "none";
+  document.getElementById("imgFile").value = "";
 }
-function dbGet(store, key) {
-  return new Promise((res,rej)=>{ const r=tx(store).get(key); r.onsuccess=e=>res(e.target.result); r.onerror=e=>rej(e.target.error); });
-}
-function dbPut(store, value) {
-  return new Promise((res,rej)=>{ const r=tx(store,'readwrite').put(value); r.onsuccess=e=>res(e.target.result); r.onerror=e=>rej(e.target.error); });
-}
-function dbDelete(store, key) {
-  return new Promise((res,rej)=>{ const r=tx(store,'readwrite').delete(key); r.onsuccess=e=>res(); r.onerror=e=>rej(e.target.error); });
-}
-function dbClear(store) {
-  return new Promise((res,rej)=>{ const r=tx(store,'readwrite').clear(); r.onsuccess=()=>res(); r.onerror=e=>rej(e.target.error); });
+function resetImageUI() {
+  currentImageData = null;
+  document.getElementById("imgPreview").src = "";
+  document.getElementById("imgPreview").style.display = "none";
+  document.getElementById("imgHint").style.display = "block";
+  document.getElementById("imgClearBtn").style.display = "none";
+  document.getElementById("imgFile").value = "";
 }
 
-// ── STATE ──────────────────────────────────────────────────
-let state = { decks:[], stats:{}, activeDeckId:null, session:null };
+// PAGES
+function showPage(p) {
+  document.querySelectorAll(".page").forEach(el => el.classList.remove("active"));
+  document.querySelectorAll(".nav-tab").forEach(el => el.classList.remove("active"));
+  document.getElementById("page-"+p).classList.add("active");
+  const tabs = document.querySelectorAll(".nav-tab");
+  if (p==="home")   tabs[0].classList.add("active");
+  if (p==="manage") tabs[1].classList.add("active");
+  currentPage = p;
+  if (p==="home")   renderHome();
+  if (p==="manage") { renderManage(); updateBackupInfo(); }
+}
+function goHome() { showPage("home"); }
 
-async function loadAll() {
-  const [decks, statsArr] = await Promise.all([dbGetAll('decks'), dbGetAll('stats')]);
-  state.decks = decks || [];
-  state.stats = {};
-  (statsArr||[]).forEach(s=>{ state.stats[s.deckId]=s; });
-}
-async function saveDeckToDB(deck)      { await dbPut('decks', deck); }
-async function deleteDeckFromDB(id)    { await dbDelete('decks', id); }
-async function saveStatToDB(deckId)    { const s=state.stats[deckId]; if(s) await dbPut('stats',{...s,deckId}); }
-async function saveSession()           { if(state.session) await dbPut('session',{key:'current',...state.session}); else await dbDelete('session','current').catch(()=>{}); }
-async function loadSessionFromDB()     { return await dbGet('session','current')||null; }
-
-// ── HELPERS ────────────────────────────────────────────────
-function uid()         { return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
-function getDeck(id)   { return state.decks.find(d=>d.id===id); }
-function shuffle(arr)  { const a=[...arr]; for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
-function adjustColor(hex,amt) {
-  const n=parseInt(hex.replace('#',''),16);
-  const r=Math.max(0,Math.min(255,(n>>16)+amt));
-  const g=Math.max(0,Math.min(255,((n>>8)&0xff)+amt));
-  const b=Math.max(0,Math.min(255,(n&0xff)+amt));
-  return `#${((r<<16)|(g<<8)|b).toString(16).padStart(6,'0')}`;
-}
-function langLabel(code) {
-  return {en:'EN',ja:'JA',ko:'KO',zh:'ZH',fr:'FR',es:'ES',other:'??'}[code]||'EN';
-}
-function showToast(msg,dur=2200) {
-  const t=document.getElementById('toast');
-  t.textContent=msg; t.classList.remove('hidden');
-  clearTimeout(t._timer); t._timer=setTimeout(()=>t.classList.add('hidden'),dur);
-}
-
-// ── SCREEN ROUTER ──────────────────────────────────────────
-let currentScreen='screenHome';
-function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  currentScreen=id;
-  document.querySelectorAll('.bnav-btn').forEach(b=>b.classList.toggle('active',b.dataset.screen===id));
-  document.getElementById('fabAdd').style.display=id==='screenHome'?'flex':'none';
-  if(id==='screenHome')    renderHome();
-  if(id==='screenDeckList') renderDeckList();
-  if(id==='screenStats')   renderStats();
+// RENDER HOME
+async function renderHome() {
+  const d = await loadData();
+  const el = document.getElementById("deckListHome");
+  if (d.decks.length === 0) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">📚</div><p>Chưa có bộ thẻ nào.<br>Vào tab <strong>Quản lý</strong> để tạo nhé!</p></div>`;
+    return;
+  }
+  el.innerHTML = d.decks.map(deck => {
+    const words = d.words[deck.id] || [];
+    const c = COLORS.find(c => c.name === deck.color) || COLORS[0];
+    const prog = d.progress && d.progress[deck.id];
+    const knowCount = prog ? (prog.knowIds || []).length : 0;
+    const total = words.length;
+    const pct = total ? Math.round(knowCount/total*100) : 0;
+    const badge = knowCount > 0
+      ? `<div style="font-size:11px;font-weight:700;color:${c.dark};background:${c.light};padding:3px 8px;border-radius:20px;white-space:nowrap">${knowCount}/${total} ✓</div>`
+      : "";
+    return `<div class="deck-card" onclick="startStudy('${deck.id}')">
+      <div class="deck-icon" style="background:${c.light}">${deck.emoji}</div>
+      <div class="deck-info">
+        <div class="deck-name">${deck.name}</div>
+        <div class="deck-meta">${total} từ vựng${knowCount>0?" · "+pct+"% đã biết":""}</div>
+        ${knowCount>0?`<div style="height:4px;background:rgba(0,0,0,0.07);border-radius:10px;margin-top:5px"><div style="height:100%;width:${pct}%;background:${c.bg};border-radius:10px;transition:width 0.4s"></div></div>`:""}
+      </div>
+      ${badge}
+    </div>`;
+  }).join("");
+  // Show install banner if not dismissed
+  if (!localStorage.getItem("installDismissed")) showInstallBanner();
 }
 
-// ── HOME ───────────────────────────────────────────────────
-function renderHome() {
-  const grid=document.getElementById('deckGrid');
-  const empty=document.getElementById('emptyState');
-  document.getElementById('statDecks').textContent=state.decks.length;
-  document.getElementById('statCards').textContent=state.decks.reduce((a,d)=>a+d.cards.length,0);
-  grid.innerHTML='';
-  if(!state.decks.length){ grid.style.display='none'; empty.classList.remove('hidden'); return; }
-  grid.style.display='grid'; empty.classList.add('hidden');
-  state.decks.forEach(deck=>{
-    const card=document.createElement('div');
-    card.className='deck-card';
-    card.style.background=`linear-gradient(135deg,${deck.color} 0%,${adjustColor(deck.color,-20)} 100%)`;
-    card.innerHTML=`<div class="deck-emoji">${deck.emoji}</div><div class="deck-name">${deck.name}</div><div class="deck-count">${deck.cards.length} từ</div>`;
-    card.addEventListener('click',()=>openDeck(deck.id));
-    grid.appendChild(card);
-  });
+// RENDER MANAGE
+async function renderManage() {
+  const d = await loadData();
+  const el = document.getElementById("deckListManage");
+  if (d.decks.length === 0) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">📂</div><p>Chưa có bộ thẻ nào</p></div>`;
+    return;
+  }
+  el.innerHTML = d.decks.map(deck => {
+    const words = d.words[deck.id] || [];
+    const c = COLORS.find(c => c.name === deck.color) || COLORS[0];
+    return `<div class="deck-card" onclick="openDeckDetail('${deck.id}')">
+      <div class="deck-icon" style="background:${c.light}">${deck.emoji}</div>
+      <div class="deck-info">
+        <div class="deck-name">${deck.name}</div>
+        <div class="deck-meta">${words.length} từ</div>
+      </div>
+      <div class="deck-actions">
+        <button class="icon-btn" onclick="event.stopPropagation();openEditDeck('${deck.id}')">✏️</button>
+      </div>
+    </div>`;
+  }).join("");
 }
 
-// ── CARD LIST ──────────────────────────────────────────────
-function openDeck(deckId) {
-  state.activeDeckId=deckId;
-  const deck=getDeck(deckId);
-  document.getElementById('cardListTitle').textContent=`${deck.emoji} ${deck.name}`;
-  renderCardList(); showScreen('screenCardList');
+// DECK MODAL
+function buildColorRow(selected) {
+  document.getElementById("colorRow").innerHTML = COLORS.map(c =>
+    `<div class="color-dot${c.name===selected?" selected":""}" style="background:${c.bg}" onclick="selectColor('${c.name}')"></div>`
+  ).join("");
 }
-function renderCardList() {
-  const deck=getDeck(state.activeDeckId);
-  const list=document.getElementById('cardListItems');
-  const empty=document.getElementById('emptyCards');
-  list.innerHTML='';
-  if(!deck||!deck.cards.length){ empty.classList.remove('hidden'); return; }
-  empty.classList.add('hidden');
-  deck.cards.forEach((card,idx)=>{
-    const item=document.createElement('div');
-    item.className='card-item';
-    item.innerHTML=`<div class="card-item-body"><div class="card-front-text">${card.front}</div><div class="card-back-text">${card.back}</div></div><div class="card-item-actions"><button class="mdeck-btn edit">✏️</button><button class="mdeck-btn del">🗑️</button></div>`;
-    item.querySelector('.edit').addEventListener('click',e=>{e.stopPropagation();openCardForm(idx);});
-    item.querySelector('.del').addEventListener('click',e=>{e.stopPropagation();deleteCard(idx);});
-    list.appendChild(item);
-  });
+function selectColor(name) { selectedColor = name; buildColorRow(name); }
+function openAddDeck() {
+  editingDeckId = null; selectedColor = "teal";
+  document.getElementById("deckModalTitle").textContent = "Tạo bộ thẻ mới";
+  document.getElementById("deckName").value = "";
+  document.getElementById("deckEmoji").value = "";
+  buildColorRow("teal"); openModal("deckModal");
 }
-
-// ── CARD FORM ──────────────────────────────────────────────
-let editingCardIdx=null;
-function openCardForm(idx=null) {
-  editingCardIdx=idx;
-  document.getElementById('cardFormTitle').textContent=idx===null?'Thêm từ vựng':'Chỉnh sửa từ';
-  if(idx!==null){ const c=getDeck(state.activeDeckId).cards[idx]; document.getElementById('cardFront').value=c.front; document.getElementById('cardBack').value=c.back; document.getElementById('cardNote').value=c.note||''; document.getElementById('cardLang').value=c.lang||'en'; }
-  else { document.getElementById('cardFront').value=''; document.getElementById('cardBack').value=''; document.getElementById('cardNote').value=''; document.getElementById('cardLang').value='en'; }
-  showScreen('screenCardForm');
-}
-async function saveCard() {
-  const front=document.getElementById('cardFront').value.trim();
-  const back=document.getElementById('cardBack').value.trim();
-  const note=document.getElementById('cardNote').value.trim();
-  const lang=document.getElementById('cardLang').value;
-  if(!front||!back){ showToast('⚠️ Vui lòng điền đủ mặt trước và sau!'); return; }
-  const deck=getDeck(state.activeDeckId);
-  const card={id:uid(),front,back,note,lang};
-  if(editingCardIdx!==null){ card.id=deck.cards[editingCardIdx].id; deck.cards[editingCardIdx]=card; showToast('✅ Đã cập nhật từ vựng!'); }
-  else { deck.cards.push(card); showToast('✅ Đã thêm từ vựng!'); }
-  await saveDeckToDB(deck); renderCardList(); showScreen('screenCardList');
-}
-function deleteCard(idx) {
-  showConfirm('Xóa từ vựng?','Từ này sẽ bị xóa vĩnh viễn.',async()=>{
-    const deck=getDeck(state.activeDeckId); deck.cards.splice(idx,1);
-    await saveDeckToDB(deck); renderCardList(); showToast('🗑️ Đã xóa từ vựng');
-  });
-}
-
-// ── DECK FORM ──────────────────────────────────────────────
-let editingDeckId=null, selectedEmoji='📚', selectedColor='#0ea5e9';
-function openDeckForm(deckId=null) {
-  editingDeckId=deckId;
-  document.getElementById('deckFormTitle').textContent=deckId?'Chỉnh sửa bộ thẻ':'Tạo bộ thẻ mới';
-  if(deckId){ const d=getDeck(deckId); document.getElementById('deckName').value=d.name; document.getElementById('deckDesc').value=d.desc||''; selectedEmoji=d.emoji; selectedColor=d.color; }
-  else { document.getElementById('deckName').value=''; document.getElementById('deckDesc').value=''; selectedEmoji='📚'; selectedColor='#0ea5e9'; }
-  document.querySelectorAll('.emoji-opt').forEach(el=>el.classList.toggle('active',el.dataset.emoji===selectedEmoji));
-  document.querySelectorAll('.color-opt').forEach(el=>el.classList.toggle('active',el.dataset.color===selectedColor));
-  updateDeckPreview(); showScreen('screenDeckForm');
-}
-function updateDeckPreview() {
-  const name=document.getElementById('deckName').value||'Tên bộ thẻ';
-  document.getElementById('previewEmoji').textContent=selectedEmoji;
-  document.getElementById('previewName').textContent=name;
-  document.getElementById('deckPreview').style.background=`linear-gradient(135deg,${selectedColor} 0%,${adjustColor(selectedColor,-20)} 100%)`;
+async function openEditDeck(id) {
+  const d = await loadData();
+  const deck = d.decks.find(dk => dk.id === id); if (!deck) return;
+  editingDeckId = id; selectedColor = deck.color;
+  document.getElementById("deckModalTitle").textContent = "Chỉnh sửa bộ thẻ";
+  document.getElementById("deckName").value = deck.name;
+  document.getElementById("deckEmoji").value = deck.emoji;
+  buildColorRow(deck.color); openModal("deckModal");
 }
 async function saveDeck() {
-  const name=document.getElementById('deckName').value.trim();
-  const desc=document.getElementById('deckDesc').value.trim();
-  if(!name){ showToast('⚠️ Vui lòng nhập tên bộ thẻ!'); return; }
-  if(editingDeckId){ const d=getDeck(editingDeckId); d.name=name;d.emoji=selectedEmoji;d.color=selectedColor;d.desc=desc; await saveDeckToDB(d); showToast('✅ Đã cập nhật bộ thẻ!'); }
-  else { const nd={id:uid(),name,emoji:selectedEmoji,color:selectedColor,desc,cards:[]}; state.decks.push(nd); await saveDeckToDB(nd); showToast('✅ Đã tạo bộ thẻ mới!'); }
-  renderHome(); renderDeckList(); showScreen('screenDeckList');
+  const name = document.getElementById("deckName").value.trim();
+  const emoji = document.getElementById("deckEmoji").value.trim() || "📚";
+  if (!name) { alert("Vui lòng nhập tên bộ thẻ!"); return; }
+  const d = await loadData();
+  if (editingDeckId) {
+    const deck = d.decks.find(dk => dk.id === editingDeckId);
+    if (deck) { deck.name = name; deck.emoji = emoji; deck.color = selectedColor; }
+  } else {
+    const id = "deck_"+Date.now();
+    d.decks.push({ id, name, emoji, color: selectedColor });
+    d.words[id] = [];
+  }
+  await saveData(d); closeModal("deckModal"); renderManage();
 }
 
-// ── MANAGE DECK LIST ───────────────────────────────────────
-function renderDeckList() {
-  const list=document.getElementById('manageDeckList');
-  list.innerHTML='';
-  if(!state.decks.length){ list.innerHTML='<div class="empty-state"><div class="empty-icon">🗂️</div><p>Chưa có bộ thẻ nào</p></div>'; return; }
-  state.decks.forEach(deck=>{
-    const item=document.createElement('div'); item.className='mdeck-item';
-    item.innerHTML=`<div class="mdeck-icon" style="background:${deck.color}22">${deck.emoji}</div><div class="mdeck-info"><div class="mdeck-name">${deck.name}</div><div class="mdeck-count">${deck.cards.length} từ vựng</div></div><div class="mdeck-actions"><button class="mdeck-btn edit">✏️</button><button class="mdeck-btn del">🗑️</button></div>`;
-    item.querySelector('.edit').addEventListener('click',()=>openDeckForm(deck.id));
-    item.querySelector('.del').addEventListener('click',()=>{
-      showConfirm('Xóa bộ thẻ?',`Bộ thẻ "${deck.name}" và ${deck.cards.length} từ sẽ bị xóa.`,async()=>{
-        state.decks=state.decks.filter(d=>d.id!==deck.id);
-        await deleteDeckFromDB(deck.id); renderDeckList(); renderHome(); showToast('🗑️ Đã xóa bộ thẻ');
-      });
-    });
-    list.appendChild(item);
-  });
+// DECK DETAIL
+async function openDeckDetail(id) {
+  activeDeckId = id;
+  const d = await loadData();
+  const deck = d.decks.find(dk => dk.id === id); if (!deck) return;
+  document.getElementById("detailTitle").textContent = deck.emoji+" "+deck.name;
+  renderDetailWords(id); openModal("detailModal");
+}
+async function renderDetailWords(id) {
+  const d = await loadData();
+  const words = d.words[id] || [];
+  const el = document.getElementById("detailWordList");
+  if (words.length === 0) {
+    el.innerHTML = `<div class="empty-state" style="padding:16px"><div class="empty-icon">📝</div><p>Chưa có từ nào.<br>Nhấn + để thêm từ mới!</p></div>`;
+    return;
+  }
+  el.innerHTML = `<div class="word-list">${words.map(w => {
+    const thumb = w.img
+      ? `<div class="word-item-thumb"><img src="${w.img}" alt="${w.en}"></div>`
+      : `<div class="word-item-thumb">📖</div>`;
+    return `<div class="word-item">
+      ${thumb}
+      <div class="word-item-info">
+        <div class="word-item-en">${w.en}</div>
+        <div class="word-item-vn">${w.vn}${w.ph ? " · "+w.ph : ""}</div>
+      </div>
+      <div style="display:flex;gap:6px">
+        <button class="icon-btn" onclick="openEditWord('${id}','${w.id}')">✏️</button>
+        <button class="icon-btn" onclick="deleteWord('${id}','${w.id}')">🗑</button>
+      </div>
+    </div>`;
+  }).join("")}</div>`;
 }
 
-// ── STUDY ──────────────────────────────────────────────────
-let isFlipped=false;
-async function startStudy(resume=false) {
-  const deck=getDeck(state.activeDeckId);
-  if(!deck.cards.length){ showToast('⚠️ Bộ thẻ chưa có từ vựng!'); return; }
-  if(!resume){ state.session={deckId:state.activeDeckId,index:0,correct:0,wrong:0,shuffled:shuffle(deck.cards)}; }
-  await saveSession(); isFlipped=false; showScreen('screenStudy'); renderStudyCard();
+// WORD MODAL
+function openAddWord() {
+  editingWordId = null;
+  document.getElementById("wordModalTitle").textContent = "Thêm từ mới";
+  document.getElementById("wordEn").value = "";
+  document.getElementById("wordPh").value = "";
+  document.getElementById("wordVn").value = "";
+  document.getElementById("wordEx").value = "";
+  resetImageUI(); openModal("wordModal");
 }
-function renderStudyCard() {
-  const sess=state.session; const total=sess.shuffled.length;
-  document.getElementById('studyProgressFill').style.width=(total?(sess.index/total*100):0)+'%';
-  document.getElementById('studyProgressLabel').textContent=`${sess.index} / ${total}`;
-  if(sess.index>=total){ finishStudy(); return; }
-  const card=sess.shuffled[sess.index];
-  document.getElementById('cardFrontContent').textContent=card.front;
-  document.getElementById('cardBackContent').textContent=card.back;
-  document.getElementById('cardNoteContent').textContent=card.note||'';
-  document.getElementById('cardLangBadge').textContent=langLabel(card.lang);
-  isFlipped=false;
-  document.getElementById('flashcardInner').classList.remove('flipped');
-  document.getElementById('studyBtns').classList.add('hidden');
+async function openEditWord(deckId, wordId) {
+  const d = await loadData();
+  const w = (d.words[deckId]||[]).find(w => w.id === wordId); if (!w) return;
+  editingWordId = wordId;
+  document.getElementById("wordModalTitle").textContent = "Chỉnh sửa từ";
+  document.getElementById("wordEn").value = w.en;
+  document.getElementById("wordPh").value = w.ph || "";
+  document.getElementById("wordVn").value = w.vn;
+  document.getElementById("wordEx").value = w.ex || "";
+  if (w.img) {
+    currentImageData = w.img;
+    document.getElementById("imgPreview").src = w.img;
+    document.getElementById("imgPreview").style.display = "block";
+    document.getElementById("imgHint").style.display = "none";
+    document.getElementById("imgClearBtn").style.display = "flex";
+  } else { resetImageUI(); }
+  openModal("wordModal");
+}
+async function saveWord() {
+  const en = document.getElementById("wordEn").value.trim();
+  const ph = document.getElementById("wordPh").value.trim();
+  const vn = document.getElementById("wordVn").value.trim();
+  const ex = document.getElementById("wordEx").value.trim();
+  if (!en || !vn) { alert("Vui lòng nhập từ tiếng Anh và nghĩa tiếng Việt!"); return; }
+  const d = await loadData();
+  if (!d.words[activeDeckId]) d.words[activeDeckId] = [];
+  if (editingWordId) {
+    const w = d.words[activeDeckId].find(w => w.id === editingWordId);
+    if (w) { w.en = en; w.ph = ph; w.vn = vn; w.ex = ex; w.img = currentImageData || null; }
+  } else {
+    d.words[activeDeckId].push({ id:"w_"+Date.now(), en, ph, vn, ex, img: currentImageData || null });
+  }
+  await saveData(d); closeModal("wordModal"); renderDetailWords(activeDeckId);
+}
+async function deleteWord(deckId, wordId) {
+  const d = await loadData();
+  d.words[deckId] = (d.words[deckId]||[]).filter(w => w.id !== wordId);
+  await saveData(d); renderDetailWords(deckId);
+}
+
+// DELETE DECK
+function confirmDeleteDeck() {
+  document.getElementById("confirmTitle").textContent = "Xoá bộ thẻ?";
+  document.getElementById("confirmMsg").textContent = "Tất cả từ vựng sẽ bị xoá. Không thể khôi phục!";
+  document.getElementById("confirmOkBtn").onclick = async () => {
+    const d = await loadData();
+    d.decks = d.decks.filter(dk => dk.id !== activeDeckId);
+    delete d.words[activeDeckId];
+    await saveData(d); closeModal("confirmModal"); closeModal("detailModal"); renderManage();
+  };
+  openModal("confirmModal");
+}
+
+// MODAL HELPERS
+function openModal(id)  { document.getElementById(id).classList.add("open"); }
+function closeModal(id) { document.getElementById(id).classList.remove("open"); }
+document.querySelectorAll(".overlay").forEach(o => {
+  o.addEventListener("click", e => { if (e.target === o) o.classList.remove("open"); });
+});
+
+// STUDY
+function shuffle(a) { for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]; } return a; }
+async function startStudy(deckId) {
+  const d = await loadData();
+  const deck = d.decks.find(dk => dk.id === deckId);
+  const words = d.words[deckId] || [];
+  if (words.length === 0) { alert("Bộ thẻ này chưa có từ nào! Vào Quản lý để thêm từ nhé."); return; }
+  activeDeckId = deckId;
+
+  // Load saved progress
+  const prog = d.progress && d.progress[deckId];
+  if (prog && prog.knowIds && prog.knowIds.length > 0) {
+    const resume = confirm(`Bạn đã học ${prog.knowIds.length} từ lần trước.\n\nTiếp tục từ chỗ đã học, hay học lại từ đầu?`);
+    if (resume) {
+      // Only study words not yet known
+      const remaining = words.filter(w => !prog.knowIds.includes(w.id));
+      if (remaining.length === 0) {
+        if (confirm("Bạn đã biết hết tất cả từ trong bộ này! 🎉\nHọc lại từ đầu không?")) {
+          clearProgress(deckId); studyQueue = shuffle([...words]);
+        } else return;
+      } else {
+        studyQueue = shuffle(remaining);
+        knowSet = new Set(prog.knowIds);
+        againSet = new Set(prog.againIds || []);
+      }
+    } else {
+      clearProgress(deckId);
+      studyQueue = shuffle([...words]);
+      knowSet.clear(); againSet.clear();
+    }
+  } else {
+    studyQueue = shuffle([...words]);
+    knowSet.clear(); againSet.clear();
+  }
+
+  studyIdx = 0; flipped = false;
+  const c = COLORS.find(c => c.name === deck.color) || COLORS[0];
+  document.getElementById("progFill").style.background = c.bg;
+  document.getElementById("studyTitle").textContent = deck.emoji+" "+deck.name;
+  showPage("study"); updateStudyUI(); renderStudyCard();
+}
+
+async function saveProgress() {
+  const d = await loadData();
+  if (!d.progress) d.progress = {};
+  d.progress[activeDeckId] = {
+    knowIds: [...knowSet],
+    againIds: [...againSet],
+    savedAt: new Date().toISOString()
+  };
+  await saveData(d);
+}
+
+async function clearProgress(deckId) {
+  const d = await loadData();
+  if (d.progress) delete d.progress[deckId];
+  await saveData(d);
+  knowSet.clear(); againSet.clear();
+}
+function updateStudyUI() {
+  const total = studyQueue.length, done = studyIdx;
+  const pct = total ? Math.round((done/total)*100) : 0;
+  document.getElementById("progLabel").textContent = `Thẻ ${Math.min(done+1,total)} / ${total}`;
+  document.getElementById("progPct").textContent = pct+"%";
+  document.getElementById("progFill").style.width = pct+"%";
+  document.getElementById("sKnow").textContent = knowSet.size;
+  document.getElementById("sAgain").textContent = againSet.size;
+  document.getElementById("sLeft").textContent = Math.max(0,total-done);
+}
+async function renderStudyCard() {
+  const area = document.getElementById("studyArea");
+  const flipW = document.getElementById("flipWrap");
+  const actRow = document.getElementById("actionRow");
+  if (studyIdx >= studyQueue.length) {
+    flipW.style.display = "none"; actRow.classList.remove("vis");
+    // If all words known, clear progress
+    const d2 = await loadData();
+    const allWords = d2.words[activeDeckId] || [];
+    const allDone = allWords.every(w => knowSet.has(w.id));
+    if (allDone) clearProgress(activeDeckId);
+    else saveProgress();
+    area.innerHTML = `<div class="done-box">
+      <div style="font-size:52px;margin-bottom:12px">🎉</div>
+      <h2>Hoàn thành!</h2>
+      <p>Đã biết: <strong>${knowSet.size}</strong> từ &nbsp;·&nbsp; Cần ôn: <strong>${againSet.size}</strong> từ</p>
+      <div class="done-btns">
+        ${againSet.size>0?`<button class="btn btn-danger" onclick="reviewAgain()">↺ Ôn lại ${againSet.size} từ chưa nhớ</button>`:""}
+        <button class="btn btn-primary" onclick="startStudy('${activeDeckId}')">▶ Học lại từ đầu</button>
+        <button class="btn btn-secondary" onclick="goHome()">← Về trang chủ</button>
+      </div>
+    </div>`;
+    return;
+  }
+  const w = studyQueue[studyIdx];
+  const d = await loadData();
+  const deck = d.decks.find(dk => dk.id === activeDeckId) || {};
+  const c = COLORS.find(c => c.name === deck.color) || COLORS[0];
+  flipped = false;
+  flipW.style.display = "flex"; flipW.style.opacity = "1";
+  actRow.classList.remove("vis");
+  const imgEl = w.img ? `<img class="card-img" src="${w.img}" alt="${w.en}">` : "";
+  area.innerHTML = `<div class="card-stage" onclick="flipCard()">
+    <div class="card-inner" id="cardInner">
+      <div class="card-face card-front">
+        <span class="card-badge" style="background:${c.light};color:${c.dark}">${deck.emoji} ${deck.name}</span>
+        <span class="card-num">${studyIdx+1}/${studyQueue.length}</span>
+        ${imgEl}
+        <div class="card-word">${w.en}</div>
+        <div class="card-ph">${w.ph||""}</div>
+        <div class="card-hint">chạm để lật ↕</div>
+      </div>
+      <div class="card-face card-back" style="background:${c.light}">
+        <span class="card-badge" style="background:${c.bg};color:#fff">${deck.emoji} ${deck.name}</span>
+        <span class="card-num">${studyIdx+1}/${studyQueue.length}</span>
+        ${imgEl}
+        <div class="card-vn" style="color:${c.dark}">${w.vn}</div>
+        ${w.ex?`<div class="card-ex" style="color:${c.dark}">"${w.ex}"</div>`:""}
+        <div class="card-hint">chạm để lật lại ↕</div>
+      </div>
+    </div>
+  </div>`;
 }
 function flipCard() {
-  if(isFlipped) return; isFlipped=true;
-  document.getElementById('flashcardInner').classList.add('flipped');
-  document.getElementById('studyBtns').classList.remove('hidden');
+  if (studyIdx >= studyQueue.length) return;
+  flipped = !flipped;
+  const ci = document.getElementById("cardInner"); if (!ci) return;
+  ci.classList.toggle("flipped", flipped);
+  const ar = document.getElementById("actionRow"), fw = document.getElementById("flipWrap");
+  if (flipped) { ar.classList.add("vis"); fw.style.opacity="0"; }
+  else { ar.classList.remove("vis"); fw.style.opacity="1"; }
 }
-async function answerCard(correct) {
-  if(!isFlipped) return;
-  if(correct) state.session.correct++; else state.session.wrong++;
-  state.session.index++; await saveSession(); renderStudyCard();
+function markKnow()  { knowSet.add(studyQueue[studyIdx].id);  studyIdx++; updateStudyUI(); renderStudyCard(); saveProgress(); }
+function markAgain() { againSet.add(studyQueue[studyIdx].id); studyIdx++; updateStudyUI(); renderStudyCard(); saveProgress(); }
+async function reviewAgain() {
+  const d = await loadData();
+  const allWords = d.words[activeDeckId] || [];
+  studyQueue = shuffle(allWords.filter(w => againSet.has(w.id)));
+  studyIdx=0; flipped=false; knowSet.clear(); againSet.clear();
+  updateStudyUI(); renderStudyCard();
 }
-async function finishStudy() {
-  const sess=state.session; const total=sess.shuffled.length;
-  const pct=Math.round(sess.correct/total*100);
-  if(!state.stats[sess.deckId]) state.stats[sess.deckId]={correct:0,wrong:0,sessions:0};
-  state.stats[sess.deckId].correct+=sess.correct;
-  state.stats[sess.deckId].wrong+=sess.wrong;
-  state.stats[sess.deckId].sessions+=1;
-  state.stats[sess.deckId].lastStudied=Date.now();
-  await saveStatToDB(sess.deckId);
-  state.session=null; await saveSession();
-  const emoji=pct===100?'🏆':pct>=70?'🎉':pct>=40?'💪':'📖';
-  const msg=pct===100?'Tuyệt vời! Bạn nhớ hết tất cả!':pct>=70?'Rất tốt! Luyện tập thêm nhé!':pct>=40?'Không tệ! Cố gắng hơn nhé!':'Hãy ôn lại và thử lại!';
-  document.getElementById('resultEmoji').textContent=emoji;
-  document.getElementById('resultTitle').textContent=pct===100?'Hoàn hảo!':'Hoàn thành!';
-  document.getElementById('resultMsg').textContent=msg;
-  document.getElementById('resultCorrect').textContent=sess.correct;
-  document.getElementById('resultWrong').textContent=sess.wrong;
-  showScreen('screenResult');
-}
+document.addEventListener("keydown", e => {
+  if (currentPage !== "study") return;
+  if (e.code==="Space") { e.preventDefault(); flipCard(); }
+  if (e.code==="ArrowRight" && flipped) markKnow();
+  if (e.code==="ArrowLeft"  && flipped) markAgain();
+});
 
-// ── STATS ──────────────────────────────────────────────────
-function renderStats() {
-  const cont=document.getElementById('statsContent'); cont.innerHTML='';
-  if(!state.decks.length){ cont.innerHTML='<div class="empty-state"><div class="empty-icon">📈</div><p>Chưa có dữ liệu thống kê</p></div>'; return; }
-  state.decks.forEach(deck=>{
-    const st=state.stats[deck.id]||{correct:0,wrong:0,sessions:0};
-    const total=st.correct+st.wrong; const pct=total?Math.round(st.correct/total*100):0;
-    const card=document.createElement('div'); card.className='stats-deck-card';
-    card.innerHTML=`<div class="stats-deck-icon">${deck.emoji}</div><div class="stats-info"><div class="stats-deck-name">${deck.name}</div><div class="stats-bar-wrap"><div class="stats-bar"><div class="stats-bar-fill" style="width:${pct}%"></div></div><div class="stats-pct">${pct}%</div></div><div style="font-size:12px;color:var(--text3);margin-top:4px">✅ ${st.correct} đúng · ❌ ${st.wrong} sai · 🔄 ${st.sessions} lần học</div></div>`;
-    cont.appendChild(card);
-  });
-}
-
-// ── BACKUP ────────────────────────────────────────────────
+// BACKUP & RESTORE
 async function exportBackup() {
-  const data={version:2,engine:'IndexedDB',exported:new Date().toISOString(),decks:state.decks,stats:state.stats};
-  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a'); a.href=url;
-  a.download=`koif-backup-${new Date().toISOString().slice(0,10)}.json`;
-  a.click(); URL.revokeObjectURL(url);
-  showToast('📤 Đã xuất file backup!');
+  const d = await loadData();
+  const backup = {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    data: d
+  };
+  const json = JSON.stringify(backup, null, 2);
+  const blob = new Blob([json], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  const date = new Date().toISOString().slice(0,10);
+  a.href = url;
+  a.download = `flashcard-backup-${date}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  // Save last backup time
+  localStorage.setItem("lastBackup", new Date().toISOString());
+  updateBackupInfo();
+  showToast("✓ Đã xuất file backup!");
 }
-function importBackup(file) {
-  const reader=new FileReader();
-  reader.onload=async e=>{
+
+function importBackup(e) {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async ev => {
     try {
-      const data=JSON.parse(e.target.result);
-      if(!data.decks) throw new Error('Invalid');
-      showConfirm('Nhập dữ liệu?','Dữ liệu hiện tại sẽ bị ghi đè. Tiếp tục?',async()=>{
-        await dbClear('decks'); await dbClear('stats');
-        state.decks=data.decks||[]; state.stats=data.stats||{};
-        for(const d of state.decks) await saveDeckToDB(d);
-        for(const id of Object.keys(state.stats)) await saveStatToDB(id);
-        renderHome(); showToast(`📥 Nhập thành công ${state.decks.length} bộ thẻ!`); showScreen('screenHome');
-      },'Nhập');
-    } catch(err){ showToast('❌ File không hợp lệ!'); }
+      const backup = JSON.parse(ev.target.result);
+      // Support both raw data and wrapped backup format
+      const d = backup.data || backup;
+      if (!d.decks || !d.words) throw new Error("File không hợp lệ");
+      const totalWords = Object.values(d.words).reduce((s, arr) => s + arr.length, 0);
+      const msg = `Tìm thấy ${d.decks.length} bộ thẻ và ${totalWords} từ vựng.\n\nDữ liệu hiện tại sẽ bị GHI ĐÈ. Bạn có chắc không?`;
+      if (!confirm(msg)) return;
+      await saveData(d);
+      renderManage();
+      showToast("✓ Nhập backup thành công!");
+    } catch(err) {
+      alert("File backup không hợp lệ hoặc bị lỗi!\n" + err.message);
+    }
+    document.getElementById("importFile").value = "";
   };
   reader.readAsText(file);
 }
 
-// ── GOOGLE SHEETS IMPORT ───────────────────────────────────
-async function importFromSheets() {
-  const url=document.getElementById('sheetsUrl').value.trim();
-  if(!url){ showToast('⚠️ Nhập URL Google Sheet trước!'); return; }
-  let csvUrl=url;
-  const match=url.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
-  if(match) csvUrl=`https://docs.google.com/spreadsheets/d/${match[1]}/export?format=csv`;
-  showToast('⏳ Đang tải dữ liệu...', 4000);
-  try {
-    const res=await fetch(csvUrl); if(!res.ok) throw new Error();
-    const text=await res.text();
-    const rows=text.trim().split('\n').map(r=>r.split(',').map(c=>c.replace(/^"|"$/g,'').trim()));
-    const h=rows[0].map(x=>x.toLowerCase());
-    const hi={deck:h.indexOf('deckname')===-1?0:h.indexOf('deckname'),front:h.indexOf('front')===-1?1:h.indexOf('front'),back:h.indexOf('back')===-1?2:h.indexOf('back'),note:h.indexOf('note')===-1?3:h.indexOf('note'),lang:h.indexOf('lang')===-1?4:h.indexOf('lang')};
-    let imported=0; const updated=new Set();
-    rows.slice(1).forEach(row=>{
-      if(!row[hi.front]) return;
-      const dname=row[hi.deck]||'Sheets Import';
-      let deck=state.decks.find(d=>d.name===dname);
-      if(!deck){ deck={id:uid(),name:dname,emoji:'📊',color:'#0ea5e9',desc:'Nhập từ Google Sheets',cards:[]}; state.decks.push(deck); }
-      deck.cards.push({id:uid(),front:row[hi.front]||'',back:row[hi.back]||'',note:row[hi.note]||'',lang:row[hi.lang]||'en'});
-      updated.add(deck); imported++;
-    });
-    for(const d of updated) await saveDeckToDB(d);
-    renderHome(); showToast(`✅ Nhập ${imported} từ từ Google Sheets!`);
-  } catch(err){ showToast('❌ Lỗi kết nối. Kiểm tra URL hoặc mạng.'); }
+function updateBackupInfo() {
+  const el = document.getElementById("backupInfo");
+  if (!el) return;
+  const last = localStorage.getItem("lastBackup");
+  if (last) {
+    const d = new Date(last);
+    const str = d.toLocaleDateString("vi-VN") + " lúc " + d.toLocaleTimeString("vi-VN", {hour:"2-digit",minute:"2-digit"});
+    el.textContent = "⚠️ Nên backup thường xuyên để tránh mất dữ liệu. Lần cuối: " + str;
+  } else {
+    el.textContent = "⚠️ Chưa backup lần nào — nhấn Xuất file backup để lưu an toàn!";
+  }
 }
 
-// ── CONFIRM ───────────────────────────────────────────────
-let confirmCb=null;
-function showConfirm(title,msg,cb,okText='Xóa') {
-  document.getElementById('confirmTitle').textContent=title;
-  document.getElementById('confirmMsg').textContent=msg;
-  document.getElementById('confirmOk').textContent=okText;
-  confirmCb=cb;
-  document.getElementById('confirmModal').classList.remove('hidden');
-}
-
-// ── SEARCH ────────────────────────────────────────────────
-function doSearch(q) {
-  q=q.toLowerCase().trim();
-  if(!q){ renderHome(); return; }
-  const grid=document.getElementById('deckGrid'); const empty=document.getElementById('emptyState');
-  grid.innerHTML='';
-  const results=state.decks.filter(d=>d.name.toLowerCase().includes(q)||d.cards.some(c=>c.front.toLowerCase().includes(q)||c.back.toLowerCase().includes(q)));
-  if(!results.length){ grid.style.display='none'; empty.classList.remove('hidden'); empty.querySelector('p').textContent=`Không tìm thấy "${q}"`; return; }
-  grid.style.display='grid'; empty.classList.add('hidden');
-  results.forEach(deck=>{ const card=document.createElement('div'); card.className='deck-card'; card.style.background=`linear-gradient(135deg,${deck.color} 0%,${adjustColor(deck.color,-20)} 100%)`; card.innerHTML=`<div class="deck-emoji">${deck.emoji}</div><div class="deck-name">${deck.name}</div><div class="deck-count">${deck.cards.length} từ</div>`; card.addEventListener('click',()=>openDeck(deck.id)); grid.appendChild(card); });
-}
-
-// ── RESUME ────────────────────────────────────────────────
-async function checkResume() {
-  const sess=await loadSessionFromDB(); if(!sess) return;
-  state.session=sess;
-  const deck=getDeck(sess.deckId); if(!deck){ state.session=null; await saveSession(); return; }
-  document.getElementById('resumeDeckName').textContent=`${deck.emoji} ${deck.name}`;
-  document.getElementById('resumeModal').classList.remove('hidden');
-}
-
-// ── STORAGE ESTIMATE ──────────────────────────────────────
-async function checkDBUsage() {
-  if(!navigator.storage?.estimate) return;
-  const {usage,quota}=await navigator.storage.estimate();
-  console.log(`💾 KOIF: ${(usage/1024/1024).toFixed(2)} MB / ${(quota/1024/1024).toFixed(0)} MB`);
-}
-
-// ── INIT ──────────────────────────────────────────────────
-async function init() {
-  try { await openDB(); await loadAll(); await checkResume(); checkDBUsage(); }
-  catch(e){ console.error('DB error:',e); showToast('⚠️ Lỗi khởi động!'); }
-  bindEvents();
-  setTimeout(()=>{
-    document.getElementById('splash').classList.add('fade-out');
-    setTimeout(()=>{ document.getElementById('splash').style.display='none'; document.getElementById('app').classList.remove('hidden'); showScreen('screenHome'); },500);
-  },1600);
-}
-
-// ── EVENTS ────────────────────────────────────────────────
-function bindEvents() {
-  document.getElementById('navLogo').addEventListener('click',()=>showScreen('screenHome'));
-  document.getElementById('fabAdd').addEventListener('click',()=>openDeckForm());
-  document.getElementById('btnCreateFirst')?.addEventListener('click',()=>openDeckForm());
-
-  document.querySelectorAll('.bnav-btn').forEach(btn=>{
-    btn.addEventListener('click',()=>{ const t=btn.dataset.screen; if(t==='screenDeckList') renderDeckList(); showScreen(t); });
-  });
-  document.querySelectorAll('.back-btn').forEach(btn=>btn.addEventListener('click',()=>showScreen(btn.dataset.target)));
-
-  document.getElementById('btnManage').addEventListener('click',()=>showScreen('screenManage'));
-  document.getElementById('mCardBackup').addEventListener('click',()=>showScreen('screenBackup'));
-  document.getElementById('mCardDecks').addEventListener('click',()=>{ renderDeckList(); showScreen('screenDeckList'); });
-  document.getElementById('mCardSheets').addEventListener('click',()=>showScreen('screenBackup'));
-  document.getElementById('mCardStats').addEventListener('click',()=>{ renderStats(); showScreen('screenStats'); });
-
-  document.getElementById('btnNewDeck').addEventListener('click',()=>openDeckForm());
-  document.getElementById('btnSaveDeck').addEventListener('click',saveDeck);
-  document.getElementById('btnCancelDeck').addEventListener('click',()=>showScreen('screenDeckList'));
-  document.getElementById('deckName').addEventListener('input',updateDeckPreview);
-  document.querySelectorAll('.emoji-opt').forEach(el=>el.addEventListener('click',()=>{ document.querySelectorAll('.emoji-opt').forEach(e=>e.classList.remove('active')); el.classList.add('active'); selectedEmoji=el.dataset.emoji; updateDeckPreview(); }));
-  document.querySelectorAll('.color-opt').forEach(el=>el.addEventListener('click',()=>{ document.querySelectorAll('.color-opt').forEach(e=>e.classList.remove('active')); el.classList.add('active'); selectedColor=el.dataset.color; updateDeckPreview(); }));
-
-  document.getElementById('btnAddCard').addEventListener('click',()=>openCardForm());
-  document.getElementById('btnAddFirstCard')?.addEventListener('click',()=>openCardForm());
-  document.getElementById('btnSaveCard').addEventListener('click',saveCard);
-  document.getElementById('btnCancelCard').addEventListener('click',()=>showScreen('screenCardList'));
-
-  document.getElementById('btnStartStudy').addEventListener('click',()=>startStudy(false));
-  document.getElementById('flashcard').addEventListener('click',flipCard);
-  document.getElementById('btnCorrect').addEventListener('click',()=>answerCard(true));
-  document.getElementById('btnWrong').addEventListener('click',()=>answerCard(false));
-  document.getElementById('btnExitStudy').addEventListener('click',async()=>{ await saveSession(); showScreen('screenCardList'); });
-  document.getElementById('btnStudyAgain').addEventListener('click',()=>startStudy(false));
-  document.getElementById('btnBackToCards').addEventListener('click',()=>showScreen('screenCardList'));
-  document.getElementById('btnDeckSettings').addEventListener('click',()=>openDeckForm(state.activeDeckId));
-
-  document.getElementById('btnExport').addEventListener('click',exportBackup);
-  document.getElementById('importFile').addEventListener('change',e=>{ if(e.target.files[0]) importBackup(e.target.files[0]); e.target.value=''; });
-  document.getElementById('btnSheetsImport').addEventListener('click',importFromSheets);
-  document.getElementById('btnSheetsExport').addEventListener('click',()=>document.getElementById('sheetsHelpModal').classList.remove('hidden'));
-  document.getElementById('sheetsHelp').addEventListener('click',e=>{ e.preventDefault(); document.getElementById('sheetsHelpModal').classList.remove('hidden'); });
-  document.getElementById('closeHelpModal').addEventListener('click',()=>document.getElementById('sheetsHelpModal').classList.add('hidden'));
-  document.getElementById('sheetsHelpModal').addEventListener('click',e=>{ if(e.target===e.currentTarget) e.currentTarget.classList.add('hidden'); });
-
-  document.getElementById('btnSearch').addEventListener('click',()=>{ document.getElementById('searchBar').classList.remove('hidden'); document.getElementById('searchInput').focus(); showScreen('screenHome'); });
-  document.getElementById('btnCloseSearch').addEventListener('click',()=>{ document.getElementById('searchBar').classList.add('hidden'); document.getElementById('searchInput').value=''; renderHome(); });
-  document.getElementById('searchInput').addEventListener('input',e=>doSearch(e.target.value));
-
-  document.getElementById('confirmOk').addEventListener('click',()=>{ document.getElementById('confirmModal').classList.add('hidden'); if(confirmCb){confirmCb();confirmCb=null;} });
-  document.getElementById('confirmCancel').addEventListener('click',()=>{ document.getElementById('confirmModal').classList.add('hidden'); confirmCb=null; });
-  document.getElementById('confirmModal').addEventListener('click',e=>{ if(e.target===e.currentTarget) e.currentTarget.classList.add('hidden'); });
-
-  document.getElementById('btnContinue').addEventListener('click',()=>{ document.getElementById('resumeModal').classList.add('hidden'); state.activeDeckId=state.session.deckId; startStudy(true); });
-  document.getElementById('btnRestart').addEventListener('click',async()=>{ document.getElementById('resumeModal').classList.add('hidden'); state.session=null; await saveSession(); });
-
-  document.addEventListener('keydown',e=>{ if(currentScreen==='screenStudy'){ if(e.key===' '||e.key==='Enter'){e.preventDefault();flipCard();} if(e.key==='ArrowRight'||e.key==='1') answerCard(true); if(e.key==='ArrowLeft'||e.key==='2') answerCard(false); } });
-
-  let tx=0,ty=0;
-  const fc=document.getElementById('flashcard');
-  fc.addEventListener('touchstart',e=>{tx=e.touches[0].clientX;ty=e.touches[0].clientY;});
-  fc.addEventListener('touchend',e=>{ const dx=e.changedTouches[0].clientX-tx; const dy=e.changedTouches[0].clientY-ty; if(Math.abs(dx)>60&&Math.abs(dy)<60&&isFlipped){if(dx>0)answerCard(true);else answerCard(false);}else if(Math.abs(dx)<30&&Math.abs(dy)<30)flipCard(); });
-}
-
-document.addEventListener('DOMContentLoaded',init);
+// INIT
+(async () => { await seedDefault(); renderHome(); })();
+</script>
+</body>
+</html>
